@@ -10,7 +10,8 @@ readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
     "typer",
-    "rich"
+    "rich",
+    "pipeline-manager@git+https://github.com/antmicro/kenning-pipeline-manager"
 ]
 
 [tool.ruff]
@@ -29,4 +30,4 @@ ignore_missing_imports = true
 disallow_untyped_defs = true
 
 [project.scripts]
-pnp-parser = "pnp-parser.main:app"
+pnp-parser = "pnp_parser.main:app"

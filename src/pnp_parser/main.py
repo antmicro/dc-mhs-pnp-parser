@@ -54,7 +54,10 @@ def main(fru_json: str, output_spec: str) -> None:
     mem_subsystem = MemSubsystem(**mem_subsystem_data)
     mem_subsystem.to_spec_node(specification_builder)
 
-    specification = specification_builder.create_and_validate_spec(dump_spec="dump.json")
+    specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
+    specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
+
+    specification = specification_builder.create_and_validate_spec(dump_spec="dump.json", sort_spec=True)
     with open(output_spec, "w") as f:
         f.write(specification)
 

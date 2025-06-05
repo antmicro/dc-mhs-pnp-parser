@@ -2,7 +2,7 @@ import typer
 import json
 from pathlib import Path
 from pipeline_manager.specification_builder import SpecificationBuilder
-from .fru_model import FRU
+from .fru_model import FRU, MemorySubsystem
 from .fru_model import SOC as BaseSoc
 
 SPECIFICATION_VERSION = "20240723.13"
@@ -27,6 +27,19 @@ class Soc(BaseSoc):
             )
 
 
+class MemSubsystem(MemorySubsystem):
+    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        for slot in self.Slots:
+            builder.add_node_type(
+                name=slot.Identifier,
+                category="Connectors/MemorySubsystems/Slots",
+            )
+            for bus in slot.ConnectedBuses:
+                builder.add_node_type_interface(
+                    name=slot.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
+                )
+
+
 @app.command()
 def main(fru_json: str, output_spec: str) -> None:
     with open(fru_json) as f:
@@ -38,6 +51,11 @@ def main(fru_json: str, output_spec: str) -> None:
 
     soc = Soc(**soc_data)
     soc.to_spec_node(specification_builder)
+
+    mem_subsystem = fru.HPM.Connectors.MemorySubsystems[0]
+    mem_subsystem_data = fru.HPM.Connectors.MemorySubsystems[0].model_dump()
+    mem_subsystem = MemSubsystem(**mem_subsystem_data)
+    mem_subsystem.to_spec_node(specification_builder)
 
     specification = specification_builder.create_and_validate_spec(dump_spec="dump.json")
     print(specification)

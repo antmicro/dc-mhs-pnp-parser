@@ -2,7 +2,7 @@
 - [ ] Connectors
     - [ ] SOCs
         SOC-1
-    - [ ] MemorySubsystems
+    - [x] MemorySubsystems
         SLOTS
             SLOT-0
     - [ ] Composites

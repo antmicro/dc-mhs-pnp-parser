@@ -43,13 +43,11 @@ def main(fru_json: str, output_spec: str) -> None:
         hpm_data = json.load(f)
     fru = FRU.model_validate(hpm_data)
 
-    soc = fru.HPM.Connectors.SOCs[0]
     soc_data = fru.HPM.Connectors.SOCs[0].model_dump()
 
     soc = Soc(**soc_data)
     soc.to_spec_node(specification_builder)
 
-    mem_subsystem = fru.HPM.Connectors.MemorySubsystems[0]
     mem_subsystem_data = fru.HPM.Connectors.MemorySubsystems[0].model_dump()
     mem_subsystem = MemSubsystem(**mem_subsystem_data)
     mem_subsystem.to_spec_node(specification_builder)

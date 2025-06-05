@@ -23,5 +23,5 @@
         RTC-1
     - [ ] Fans
         FAN-1
-    - [ ] SCIs
+    - [x] SCIs
         DC-SCM-2.1

@@ -1,7 +1,9 @@
 import typer
 import json
 from pathlib import Path
+
 from pipeline_manager.specification_builder import SpecificationBuilder
+from pipeline_manager.frontend_builder import build_prepare
 from .fru_model import FRU, MemorySubsystem
 from .fru_model import SOC as BaseSoc
 from .fru_model import SCI as SciBase
@@ -102,7 +104,8 @@ def main(fru_json: str, output_spec: str) -> None:
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
 
-    specification = specification_builder.create_and_validate_spec(dump_spec="dump.json", sort_spec=True)
+    build_prepare(Path("workspace"), skip_install_deps=True)
+    specification = specification_builder.create_and_validate_spec(dump_spec="dump.json", sort_spec=True, workspacedir="workspace")
     with open(output_spec, "w") as f:
         json.dumps(specification, sort_keys=True, indent=4)
 

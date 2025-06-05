@@ -58,7 +58,8 @@ def main(fru_json: str, output_spec: str) -> None:
     mem_subsystem.to_spec_node(specification_builder)
 
     specification = specification_builder.create_and_validate_spec(dump_spec="dump.json")
-    print(specification)
+    with open(output_spec, "w") as f:
+        f.write(specification)
 
 
 if __name__ == "__main__":

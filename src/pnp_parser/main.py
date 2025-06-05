@@ -5,6 +5,7 @@ from pipeline_manager.specification_builder import SpecificationBuilder
 from .fru_model import FRU, MemorySubsystem
 from .fru_model import SOC as BaseSoc
 from .fru_model import SCI as SciBase
+from .fru_model import Fan as FanBase
 
 SPECIFICATION_VERSION = "20240723.13"
 
@@ -42,6 +43,27 @@ class Sci(SciBase):
         )
 
 
+class Fan(FanBase):
+    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        builder.add_node_type(
+            name=self.Identifier,
+            category="Connectors/Fans",
+        )
+        for bus in self.ConnectedBuses:
+            builder.add_node_type_interface(
+                name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
+            )
+        builder.add_node_type_property(
+            name=self.Identifier, propname="MaximumPower (W)", proptype="constant", default=f"{self.MaximumPowerWatts}"
+        )
+        builder.add_node_type_property(
+            name=self.Identifier, propname="ConnectorType", proptype="constant", default=self.ConnectorType
+        )
+        builder.add_node_type_property(
+            name=self.Identifier, propname="HotPlugSuported", proptype="constant", default=f"{self.HotPlugSupported}"
+        )
+
+
 class MemSubsystem(MemorySubsystem):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         for slot in self.Slots:
@@ -72,6 +94,10 @@ def main(fru_json: str, output_spec: str) -> None:
     sci_data = fru.HPM.Connectors.SCIs[0].model_dump()
     sci = Sci(**sci_data)
     sci.to_spec_node((specification_builder))
+
+    fan_data = fru.HPM.Connectors.Fans[0].model_dump()
+    fan = Fan(**fan_data)
+    fan.to_spec_node((specification_builder))
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)

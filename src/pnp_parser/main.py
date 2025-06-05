@@ -44,7 +44,6 @@ def main(fru_json: str, output_spec: str) -> None:
     fru = FRU.model_validate(hpm_data)
 
     soc_data = fru.HPM.Connectors.SOCs[0].model_dump()
-
     soc = Soc(**soc_data)
     soc.to_spec_node(specification_builder)
 

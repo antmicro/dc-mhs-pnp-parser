@@ -21,7 +21,7 @@
         PDB-1
     - [ ] RealTimeClockBatteries
         RTC-1
-    - [ ] Fans
+    - [x] Fans
         FAN-1
     - [x] SCIs
         DC-SCM-2.1

@@ -1,6 +1,6 @@
 # Nodes to add:
 - [ ] Connectors
-    - [ ] SOCs
+    - [x] SOCs
         SOC-1
     - [x] MemorySubsystems
         SLOTS

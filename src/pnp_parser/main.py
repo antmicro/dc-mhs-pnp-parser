@@ -19,7 +19,7 @@ class Soc(BaseSoc):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
-            category="devices",
+            category="Connectors/SoCs",
         )
         for bus in self.ConnectedBuses:
             builder.add_node_type_interface(
@@ -28,14 +28,17 @@ class Soc(BaseSoc):
 
 
 @app.command()
-def main(fru_json: str, output_spec: str):
+def main(fru_json: str, output_spec: str) -> None:
     with open(fru_json) as f:
         hpm_data = json.load(f)
     fru = FRU.model_validate(hpm_data)
+
     soc = fru.HPM.Connectors.SOCs[0]
     soc_data = fru.HPM.Connectors.SOCs[0].model_dump()
+
     soc = Soc(**soc_data)
     soc.to_spec_node(specification_builder)
+
     specification = specification_builder.create_and_validate_spec(dump_spec="dump.json")
     print(specification)
 

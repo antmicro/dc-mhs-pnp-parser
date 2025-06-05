@@ -6,11 +6,8 @@ from .fru_model import FRU, MemorySubsystem
 from .fru_model import SOC as BaseSoc
 
 SPECIFICATION_VERSION = "20240723.13"
-ASSETS_DIRECTORY = Path("./assets")
 
-specification_builder = SpecificationBuilder(
-    spec_version=SPECIFICATION_VERSION, assets_dir=ASSETS_DIRECTORY, check_urls=False
-)
+specification_builder = SpecificationBuilder(spec_version=SPECIFICATION_VERSION)
 
 app = typer.Typer()
 

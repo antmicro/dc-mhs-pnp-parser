@@ -59,7 +59,7 @@ def main(fru_json: str, output_spec: str) -> None:
 
     specification = specification_builder.create_and_validate_spec(dump_spec="dump.json", sort_spec=True)
     with open(output_spec, "w") as f:
-        f.write(specification)
+        json.dumps(specification, sort_keys=True, indent=4)
 
 
 if __name__ == "__main__":

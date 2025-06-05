@@ -4,6 +4,7 @@ from pathlib import Path
 from pipeline_manager.specification_builder import SpecificationBuilder
 from .fru_model import FRU, MemorySubsystem
 from .fru_model import SOC as BaseSoc
+from .fru_model import SCI as SciBase
 
 SPECIFICATION_VERSION = "20240723.13"
 
@@ -22,6 +23,23 @@ class Soc(BaseSoc):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+
+
+class Sci(SciBase):
+    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        builder.add_node_type(
+            name="DC-SCM 2.1",
+            category="Connectors/SCIs",
+        )
+        for bus in self.ConnectedBuses:
+            builder.add_node_type_interface(name="DC-SCM 2.1", interfacename=bus.Type, interfacetype=bus.Type.lower())
+        builder.add_node_type_property(
+            name="DC-SCM 2.1", propname="Revision", proptype="constant", default=self.Revision
+        )
+        builder.add_node_type_property(name="DC-SCM 2.1", propname="Version", proptype="constant", default=self.Version)
+        builder.add_node_type_property(
+            name="DC-SCM 2.1", propname="CommonCircuitType", proptype="constant", default=self.CommonCircuitType
+        )
 
 
 class MemSubsystem(MemorySubsystem):
@@ -50,6 +68,10 @@ def main(fru_json: str, output_spec: str) -> None:
     mem_subsystem_data = fru.HPM.Connectors.MemorySubsystems[0].model_dump()
     mem_subsystem = MemSubsystem(**mem_subsystem_data)
     mem_subsystem.to_spec_node(specification_builder)
+
+    sci_data = fru.HPM.Connectors.SCIs[0].model_dump()
+    sci = Sci(**sci_data)
+    sci.to_spec_node((specification_builder))
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)

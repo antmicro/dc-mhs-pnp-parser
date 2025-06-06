@@ -62,6 +62,12 @@ def create_spec(fru: FRU, output_spec: str, workspace: Path) -> SpecificationBui
     return specification
 
 
+def get_interface_from_node(nodes: dict, graph: GraphBuilder, device_data: tuple[str, str]) -> AttributeType.INTERFACE:
+    node = nodes[device_data[0]]
+    graph.get(AttributeType.INTERFACE, name=device_data[1])
+    return node.get(AttributeType.INTERFACE, name=device_data[1])[0]
+
+
 def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -> None:
     builder = GraphBuilder(
         specification=output_spec, specification_version=specification_builder.version, workspace_directory=workspace
@@ -83,19 +89,10 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
         devices = buses[bus]
         if len(devices) < 2:
             continue
-        first_dev = devices[0]
-        first_node = nodes[first_dev[0]]
-        graph.get(AttributeType.INTERFACE, name=first_dev[1])
-        first_node_interface = first_node.get(AttributeType.INTERFACE, name=first_dev[1])[0]
-        print(first_node_interface)
+        first_interface = get_interface_from_node(nodes, graph, devices[0])
         for device in devices[1:]:
-            # get interface from device
-
-            next_node = nodes[device[0]]
-            graph.get(AttributeType.INTERFACE, name=device[1])
-            node_interface = next_node.get(AttributeType.INTERFACE, name=device[1])[0]
-            print(node_interface)
-            graph.create_connection(first_node_interface, node_interface)
+            next_interface = get_interface_from_node(nodes, graph, device)
+            graph.create_connection(first_interface, next_interface)
     builder.save(graph_name)
 
 

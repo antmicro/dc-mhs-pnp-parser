@@ -70,10 +70,21 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
 
     buses: dict = dict()
     for conn in fru.HPM.Connectors:
-        print(conn[0])
-        for bus in getattr(conn, "ConnectedBuses"):
-            buses[bus["Identifier"]].append(conn["Identifier"])
+        conn_data = getattr(fru.HPM.Connectors, conn[0])[0].model_dump()
+        if "Identifier" in conn_data:
+            if "ConnectedBuses" in conn_data:
+                for bus in conn_data["ConnectedBuses"]:
+                    buses.setdefault(bus["Identifier"], []).append([conn_data["Identifier"], bus["Type"]])
+
     print(buses)
+    for bus in buses:
+        devices = buses[bus]
+        if len(devices) < 2:
+            continue
+        first_dev = devices[0]
+        for device in devices[1:]:
+            # graph.create_connection(first_dev, device)
+            pass
     builder.save(graph_name)
 
 

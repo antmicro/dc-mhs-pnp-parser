@@ -134,7 +134,7 @@ def main(fru_json: str, output_spec: str) -> None:
         dump_spec="dump.json", sort_spec=True, workspacedir=str(workspace)
     )
     with open(output_spec, "w") as f:
-        json.dumps(specification, sort_keys=True, indent=4)
+        json.dump(specification, f, sort_keys=True, indent=4)
 
 
 if __name__ == "__main__":

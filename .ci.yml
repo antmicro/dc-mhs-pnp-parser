@@ -15,12 +15,13 @@ build:
     - mv "uc?id=1tmS8xSTnhWWG5Nhqu1-Ue9Px9GFVVwO6&export=download" Release_0_3_0.zip
     - unzip Release_0_3_0.zip
     - mv Release_0_3_0/\ hpm-fru-mockup\ v0.5.2.json Release_0_3_0/hpm-fru-mockup-v0.5.2.json
-    - pnp-parser Release_0_3_0/hpm-fru-mockup-v0.5.2.json hpm-fru-mockup-v0.5.2-spec.json
+    - pnp-parser Release_0_3_0/hpm-fru-mockup-v0.5.2.json hpm-fru-mockup-v0.5.2-spec.json hpm-fru-mockup-v0.5.2-dataflow.json
   artifacts:
     expire_in: 4 week
     when: always
     paths:
       - hpm-fru-mockup-v0.5.2-spec.json
+      - hpm-fru-mockup-v0.5.2-dataflow.json
 
 deploy:
   stage: deploy
@@ -29,7 +30,7 @@ deploy:
   variables:
     GIT_STRATEGY: none
   script:
-    - tar cf $CI_DOCS_ARCHIVE hpm-fru-mockup-v0.5.2-spec.json
+    - tar cf $CI_DOCS_ARCHIVE hpm-fru-mockup-v0.5.2-*.json
   artifacts:
     paths:
       - $CI_DOCS_ARCHIVE

@@ -99,9 +99,13 @@ def main(fru_json: str, output_spec: str) -> None:
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
 
-    build_prepare(Path("workspace"), skip_install_deps=True)
+    workspace = Path("workspace")
+    if not workspace.exists():
+        build_prepare(workspace, skip_install_deps=True)
+    else:
+        build_prepare(workspace)
     specification = specification_builder.create_and_validate_spec(
-        dump_spec="dump.json", sort_spec=True, workspacedir="workspace"
+        dump_spec="dump.json", sort_spec=True, workspacedir=str(workspace)
     )
     with open(output_spec, "w") as f:
         json.dumps(specification, sort_keys=True, indent=4)

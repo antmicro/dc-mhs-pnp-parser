@@ -7,7 +7,7 @@
             SLOT-0
     - [x] Composites
         RISER-1
-    - [ ] Mxios
+    - [x] Mxios
         MXIO-1
     - [ ] Mpics
         MPIC-1

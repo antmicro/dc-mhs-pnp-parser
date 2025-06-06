@@ -17,7 +17,7 @@
         OCPMEZZ-1
     - [x] ControlPanels
         CP-1
-    - [ ] PowerDistributionBoards
+    - [x] PowerDistributionBoards
         PDB-1
     - [x] RealTimeClockBatteries
         RTC-1

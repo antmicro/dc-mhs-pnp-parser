@@ -16,6 +16,7 @@ from .fru_model import SOC as BaseSoc
 from .fru_model import SCI as SciBase
 from .fru_model import Fan as FanBase
 from .fru_model import RealTimeClockBattery
+from .fru_model import PowerDistributionBoard
 
 SPECIFICATION_VERSION = "20240723.13"
 
@@ -73,6 +74,22 @@ class Fan(FanBase):
             name=self.Identifier, propname="HotPlugSuported", proptype="constant", default=f"{self.HotPlugSupported}"
         )
 
+class PDB(PowerDistributionBoard):
+    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        builder.add_node_type(
+            name=self.Identifier,
+            category="Connectors/Power Distribution Boards",
+        )
+        for bus in self.ConnectedBuses:
+            builder.add_node_type_interface(
+                name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
+            )
+        builder.add_node_type_property(
+            name=self.Identifier, propname="Type", proptype="constant", default=self.Type
+        )
+        builder.add_node_type_property(
+            name=self.Identifier, propname="ConnectorType", proptype="constant", default=self.ConnectorType
+        )
 
 class MemorySubsystem(MemorySubsystemBase):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
@@ -187,6 +204,7 @@ def main(fru_json: str, output_spec: str) -> None:
     add_node(fru, "SCIs", Sci, specification_builder)
     add_node(fru, "Fans", Fan, specification_builder)
     add_node(fru, "RealTimeClockBatteries", RtcBattery, specification_builder)
+    add_node(fru, "PowerDistributionBoard", PDB, specification_builder)
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)

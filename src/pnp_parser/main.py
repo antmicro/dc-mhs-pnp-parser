@@ -4,6 +4,9 @@ from pathlib import Path
 
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pipeline_manager.frontend_builder import build_prepare
+from pipeline_manager.dataflow_builder.dataflow_builder import GraphBuilder
+from pipeline_manager.dataflow_builder.entities import Node
+from pipeline_manager.dataflow_builder.dataflow_graph import DataflowGraph
 from .fru_model import FRU
 from .fru_classes import (
     Soc,
@@ -31,7 +34,7 @@ def add_node(fru: FRU, prop: str, class_name: type, specification_builder: Speci
     node.to_spec_node(specification_builder)
 
 
-def create_spec(fru: FRU, output_spec: str) -> str:
+def create_spec(fru: FRU, output_spec: str) -> SpecificationBuilder:
     add_node(fru, "SOCs", Soc, specification_builder)
     add_node(fru, "MemorySubsystems", MemorySubsystem, specification_builder)
     add_node(fru, "Composites", Composite, specification_builder)
@@ -58,7 +61,21 @@ def create_spec(fru: FRU, output_spec: str) -> str:
     )
     with open(output_spec, "w") as f:
         json.dump(specification, f, sort_keys=True, indent=4)
-    return output_spec
+    return specification
+
+
+def create_graph(fru: FRU, output_spec: str, graph_name: str) -> None:
+    builder = GraphBuilder(
+        specification=output_spec,
+        specification_version=specification_builder.version,
+    )
+    graph = builder.create_graph()
+    for node in output_spec["nodes"]:
+        print(node["name"])
+        graph.create_node(name=node["name"])
+    builder.create_graph(based_on=graph)
+    builder.validate()
+    # builder.save(graph_name)
 
 
 @app.command()
@@ -67,7 +84,9 @@ def main(fru_json: str, output_spec: str) -> None:
         hpm_data = json.load(f)
     fru = FRU.model_validate(hpm_data)
 
-    create_spec(fru, output_spec)
+    graph_name = "graph.json"
+    spec = create_spec(fru, output_spec)
+    create_graph(fru, output_spec, graph_name)
 
 
 if __name__ == "__main__":

@@ -204,7 +204,7 @@ def main(fru_json: str, output_spec: str) -> None:
     add_node(fru, "SCIs", Sci, specification_builder)
     add_node(fru, "Fans", Fan, specification_builder)
     add_node(fru, "RealTimeClockBatteries", RtcBattery, specification_builder)
-    add_node(fru, "PowerDistributionBoard", PDB, specification_builder)
+    add_node(fru, "PowerDistributionBoards", PDB, specification_builder)
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)

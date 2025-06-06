@@ -7,6 +7,7 @@ from pipeline_manager.frontend_builder import build_prepare
 from pipeline_manager.dataflow_builder.dataflow_builder import GraphBuilder
 from pipeline_manager.dataflow_builder.entities import Node
 from pipeline_manager.dataflow_builder.dataflow_graph import DataflowGraph
+from pipeline_manager.dataflow_builder.dataflow_graph import AttributeType
 from .fru_model import FRU
 from .fru_classes import (
     Soc,
@@ -78,18 +79,23 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
                 for bus in conn_data["ConnectedBuses"]:
                     buses.setdefault(bus["Identifier"], []).append([conn_data["Identifier"], bus["Type"]])
 
-    print(buses)
     for bus in buses:
         devices = buses[bus]
         if len(devices) < 2:
             continue
         first_dev = devices[0]
         first_node = nodes[first_dev[0]]
-        print(first_node)
-        print(first_node.get(first_dev[1]))
+        graph.get(AttributeType.INTERFACE, name=first_dev[1])
+        first_node_interface = first_node.get(AttributeType.INTERFACE, name=first_dev[1])[0]
+        print(first_node_interface)
         for device in devices[1:]:
             # get interface from device
-            graph.create_connection(nodes[first_dev], device)
+
+            next_node = nodes[device[0]]
+            graph.get(AttributeType.INTERFACE, name=device[1])
+            node_interface = next_node.get(AttributeType.INTERFACE, name=device[1])[0]
+            print(node_interface)
+            graph.create_connection(first_node_interface, node_interface)
     builder.save(graph_name)
 
 

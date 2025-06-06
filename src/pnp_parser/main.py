@@ -31,12 +31,7 @@ def add_node(fru: FRU, prop: str, class_name: type, specification_builder: Speci
     node.to_spec_node(specification_builder)
 
 
-@app.command()
-def main(fru_json: str, output_spec: str) -> None:
-    with open(fru_json) as f:
-        hpm_data = json.load(f)
-    fru = FRU.model_validate(hpm_data)
-
+def create_spec(fru: FRU, output_spec: str) -> str:
     add_node(fru, "SOCs", Soc, specification_builder)
     add_node(fru, "MemorySubsystems", MemorySubsystem, specification_builder)
     add_node(fru, "Composites", Composite, specification_builder)
@@ -63,6 +58,16 @@ def main(fru_json: str, output_spec: str) -> None:
     )
     with open(output_spec, "w") as f:
         json.dump(specification, f, sort_keys=True, indent=4)
+    return output_spec
+
+
+@app.command()
+def main(fru_json: str, output_spec: str) -> None:
+    with open(fru_json) as f:
+        hpm_data = json.load(f)
+    fru = FRU.model_validate(hpm_data)
+
+    create_spec(fru, output_spec)
 
 
 if __name__ == "__main__":

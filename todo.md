@@ -11,7 +11,7 @@
         MXIO-1
     - [x] Mpics
         MPIC-1
-    - [ ] PowerSupplies
+    - [x] PowerSupplies
         PS-1
     - [ ] OCPMezzanineSlots
         OCPMEZZ-1

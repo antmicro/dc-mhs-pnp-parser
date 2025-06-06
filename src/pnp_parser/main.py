@@ -12,8 +12,8 @@ from .fru_model import Mpic as MpicBase
 from .fru_model import PowerSupply as PowerSupplyBase
 from .fru_model import OCPMezzanineSlot as OCPMezzanineSlotBase
 from .fru_model import ControlPanel as ControlPanelBase
-from .fru_model import SOC as BaseSoc
-from .fru_model import SCI as SciBase
+from .fru_model import SoC as SocBase
+from .fru_model import Sci as SciBase
 from .fru_model import Fan as FanBase
 from .fru_model import RealTimeClockBattery
 from .fru_model import PowerDistributionBoard
@@ -25,7 +25,7 @@ specification_builder = SpecificationBuilder(spec_version=SPECIFICATION_VERSION)
 app = typer.Typer()
 
 
-class Soc(BaseSoc):
+class Soc(SocBase):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,

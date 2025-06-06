@@ -47,7 +47,7 @@ class ConnectedBus(BaseModel):
     Identifier: str
 
 
-class SOC(BaseModel):
+class SoC(BaseModel):
     Identifier: str
     VendorName: str
     VendorID: str
@@ -177,7 +177,7 @@ class Fan(BaseModel):
     PhysicalLocation: PhysicalLocation
 
 
-class SCI(BaseModel):
+class Sci(BaseModel):
     Revision: str
     Version: str
     CommonCircuitType: str
@@ -186,7 +186,7 @@ class SCI(BaseModel):
 
 
 class Connectors(BaseModel):
-    SOCs: List[SOC]
+    SOCs: List[SoC]
     MemorySubsystems: List[MemorySubsystem]
     Composites: List[Composite]
     Mxios: List[Mxio]
@@ -197,7 +197,7 @@ class Connectors(BaseModel):
     PowerDistributionBoards: List[PowerDistributionBoard]
     RealTimeClockBatteries: List[RealTimeClockBattery]
     Fans: List[Fan]
-    SCIs: List[SCI]
+    SCIs: List[Sci]
 
 
 class HPM(BaseModel):
@@ -743,7 +743,7 @@ class Buses(BaseModel):
 
 
 class FRU(BaseModel):
-    field_comment: str = Field(..., alias='_comment')
+    field_comment: str = Field(..., alias="_comment")
     Version: float
     HPM: HPM
     FPGA: FPGA

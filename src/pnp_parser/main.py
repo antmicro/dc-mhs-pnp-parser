@@ -79,33 +79,30 @@ class MemSubsystem(MemorySubsystem):
                 )
 
 
+def get_node(fru: FRU, prop: str, class_name: type, specification_builder: SpecificationBuilder) -> None:
+    node_data = getattr(fru.HPM.Connectors, prop)[0].model_dump()
+    node = class_name(**node_data)
+    node.to_spec_node(specification_builder)
+
+
 @app.command()
 def main(fru_json: str, output_spec: str) -> None:
     with open(fru_json) as f:
         hpm_data = json.load(f)
     fru = FRU.model_validate(hpm_data)
 
-    soc_data = fru.HPM.Connectors.SOCs[0].model_dump()
-    soc = Soc(**soc_data)
-    soc.to_spec_node(specification_builder)
-
-    mem_subsystem_data = fru.HPM.Connectors.MemorySubsystems[0].model_dump()
-    mem_subsystem = MemSubsystem(**mem_subsystem_data)
-    mem_subsystem.to_spec_node(specification_builder)
-
-    sci_data = fru.HPM.Connectors.SCIs[0].model_dump()
-    sci = Sci(**sci_data)
-    sci.to_spec_node((specification_builder))
-
-    fan_data = fru.HPM.Connectors.Fans[0].model_dump()
-    fan = Fan(**fan_data)
-    fan.to_spec_node((specification_builder))
+    get_node(fru, "SOCs", Soc, specification_builder)
+    get_node(fru, "MemorySubsystems", MemSubsystem, specification_builder)
+    get_node(fru, "SCIs", Sci, specification_builder)
+    get_node(fru, "Fans", Fan, specification_builder)
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
 
     build_prepare(Path("workspace"), skip_install_deps=True)
-    specification = specification_builder.create_and_validate_spec(dump_spec="dump.json", sort_spec=True, workspacedir="workspace")
+    specification = specification_builder.create_and_validate_spec(
+        dump_spec="dump.json", sort_spec=True, workspacedir="workspace"
+    )
     with open(output_spec, "w") as f:
         json.dumps(specification, sort_keys=True, indent=4)
 

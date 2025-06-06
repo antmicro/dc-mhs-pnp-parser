@@ -117,7 +117,7 @@ class Mxio(MxioBase):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
-            category="Connectors/Mxios",
+            category="Connectors/MPICs",
         )
         for bus in self.ConnectedBuses:
             builder.add_node_type_interface(
@@ -129,7 +129,7 @@ class Mpic(MpicBase):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
-            category="Connectors/Mpics",
+            category="Connectors/MXIOs",
         )
         for bus in self.ConnectedBuses:
             builder.add_node_type_interface(
@@ -141,7 +141,7 @@ class RtcBattery(RealTimeClockBattery):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
-            category="Connectors/Mxios",
+            category="Connectors/RTC Batteries",
         )
 
 
@@ -149,7 +149,7 @@ class PowerSupply(PowerSupplyBase):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
-            category="Connectors/PowerSupplies",
+            category="Connectors/Power Supplies",
         )
         for bus in self.ConnectedBuses:
             builder.add_node_type_interface(

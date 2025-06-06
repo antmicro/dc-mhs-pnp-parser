@@ -22,3 +22,14 @@ build:
     paths:
       - hpm-fru-mockup-v0.5.2-spec.json
 
+deploy:
+  stage: deploy
+  tags: [docs]
+  dependencies: [build]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - tar cf $CI_DOCS_ARCHIVE hpm-fru-mockup-v0.5.2-spec.json
+  artifacts:
+    paths:
+      - $CI_DOCS_ARCHIVE

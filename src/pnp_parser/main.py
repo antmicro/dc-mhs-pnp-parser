@@ -34,7 +34,7 @@ def add_node(fru: FRU, prop: str, class_name: type, specification_builder: Speci
     node.to_spec_node(specification_builder)
 
 
-def create_spec(fru: FRU, output_spec: str) -> SpecificationBuilder:
+def create_spec(fru: FRU, output_spec: str, workspace: Path) -> SpecificationBuilder:
     add_node(fru, "SOCs", Soc, specification_builder)
     add_node(fru, "MemorySubsystems", MemorySubsystem, specification_builder)
     add_node(fru, "Composites", Composite, specification_builder)
@@ -51,11 +51,7 @@ def create_spec(fru: FRU, output_spec: str) -> SpecificationBuilder:
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
 
-    workspace = Path("workspace")
-    if workspace.exists():
-        build_prepare(workspace, skip_install_deps=True)
-    else:
-        build_prepare(workspace)
+
     specification = specification_builder.create_and_validate_spec(
         dump_spec="dump.json", sort_spec=True, workspacedir=str(workspace)
     )
@@ -64,10 +60,11 @@ def create_spec(fru: FRU, output_spec: str) -> SpecificationBuilder:
     return specification
 
 
-def create_graph(fru: FRU, output_spec: str, graph_name: str) -> None:
+def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -> None:
     builder = GraphBuilder(
         specification=output_spec,
         specification_version=specification_builder.version,
+        workspace_directory=workspace
     )
     graph = builder.create_graph()
     for node in output_spec["nodes"]:
@@ -79,14 +76,19 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str) -> None:
 
 
 @app.command()
-def main(fru_json: str, output_spec: str) -> None:
+def main(fru_json: str, output_spec: str, output_graph: str) -> None:
     with open(fru_json) as f:
         hpm_data = json.load(f)
     fru = FRU.model_validate(hpm_data)
 
-    graph_name = "graph.json"
-    spec = create_spec(fru, output_spec)
-    create_graph(fru, output_spec, graph_name)
+    workspace = Path("workspace")
+    if workspace.exists():
+        build_prepare(workspace, skip_install_deps=True)
+    else:
+        build_prepare(workspace)
+
+    spec = create_spec(fru, output_spec, workspace)
+    create_graph(fru, spec, output_graph, workspace)
 
 
 if __name__ == "__main__":

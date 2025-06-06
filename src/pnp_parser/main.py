@@ -78,13 +78,25 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
         nodes.update({node["name"]: graph.create_node(name=node["name"])})
 
     buses: dict = dict()
-    for conn in fru.HPM.Connectors:
-        conn_data = getattr(fru.HPM.Connectors, conn[0])[0].model_dump()
-        if "Identifier" in conn_data:
-            if "ConnectedBuses" in conn_data:
-                for bus in conn_data["ConnectedBuses"]:
-                    buses.setdefault(bus["Identifier"], []).append([conn_data["Identifier"], bus["Type"]])
-
+    fru_dict = fru.model_dump()
+    fru_hpm_connectors = fru_dict["HPM"]["Connectors"]
+    for conn_name in fru_hpm_connectors:
+        connector = fru_hpm_connectors[conn_name][0]
+        connected_buses = {}
+        identifier = ""
+        if "Identifier" in connector:
+            identifier = connector["Identifier"]
+            if "ConnectedBuses" in connector:
+                connected_buses = connector["ConnectedBuses"]
+        elif conn_name == "MemorySubsystems":
+            identifier = connector["Slots"][0]["Identifier"]
+            connected_buses = connector["Slots"][0]["ConnectedBuses"]
+        elif conn_name == "SCIs":
+            identifier = f"Rev-{connector['Revision']}-ver-{connector['Version']}"
+            connected_buses = connector["ConnectedBuses"]
+        for bus in connected_buses:
+            buses.setdefault(bus["Identifier"], []).append([identifier, bus["Type"]])
+    print(buses)
     for bus in buses:
         devices = buses[bus]
         if len(devices) < 2:

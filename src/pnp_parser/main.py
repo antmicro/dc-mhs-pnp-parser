@@ -68,11 +68,9 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
     )
     graph = builder.create_graph()
     for node in output_spec["nodes"]:
-        print(node["name"])
         graph.create_node(name=node["name"])
-    builder.create_graph(based_on=graph)
     builder.validate()
-    # builder.save(graph_name)
+    builder.save(graph_name)
 
 
 @app.command()

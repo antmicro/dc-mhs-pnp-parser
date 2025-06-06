@@ -4,7 +4,7 @@ from pathlib import Path
 
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pipeline_manager.frontend_builder import build_prepare
-from .fru_model import FRU, MemorySubsystem
+from .fru_model import FRU, MemorySubsystem, Composite
 from .fru_model import SOC as BaseSoc
 from .fru_model import SCI as SciBase
 from .fru_model import Fan as FanBase
@@ -79,7 +79,7 @@ class MemSubsystem(MemorySubsystem):
                 )
 
 
-def get_node(fru: FRU, prop: str, class_name: type, specification_builder: SpecificationBuilder) -> None:
+def add_node(fru: FRU, prop: str, class_name: type, specification_builder: SpecificationBuilder) -> None:
     node_data = getattr(fru.HPM.Connectors, prop)[0].model_dump()
     node = class_name(**node_data)
     node.to_spec_node(specification_builder)
@@ -91,10 +91,10 @@ def main(fru_json: str, output_spec: str) -> None:
         hpm_data = json.load(f)
     fru = FRU.model_validate(hpm_data)
 
-    get_node(fru, "SOCs", Soc, specification_builder)
-    get_node(fru, "MemorySubsystems", MemSubsystem, specification_builder)
-    get_node(fru, "SCIs", Sci, specification_builder)
-    get_node(fru, "Fans", Fan, specification_builder)
+    add_node(fru, "SOCs", Soc, specification_builder)
+    add_node(fru, "MemorySubsystems", MemSubsystem, specification_builder)
+    add_node(fru, "SCIs", Sci, specification_builder)
+    add_node(fru, "Fans", Fan, specification_builder)
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)

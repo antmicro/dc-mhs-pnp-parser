@@ -15,7 +15,7 @@
         PS-1
     - [x] OCPMezzanineSlots
         OCPMEZZ-1
-    - [ ] ControlPanels
+    - [x] ControlPanels
         CP-1
     - [ ] PowerDistributionBoards
         PDB-1

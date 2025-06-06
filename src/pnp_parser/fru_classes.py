@@ -17,7 +17,7 @@ specification_builder = SpecificationBuilder(spec_version=SPECIFICATION_VERSION)
 
 
 class Soc(SocBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/SoCs",
@@ -26,10 +26,11 @@ class Soc(SocBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
 
 
 class Sci(SciBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         node_name = f"Rev-{self.Revision}-ver-{self.Version}"
         builder.add_node_type(
             name=node_name,
@@ -37,6 +38,7 @@ class Sci(SciBase):
         )
         for bus in self.ConnectedBuses:
             builder.add_node_type_interface(name=node_name, interfacename=bus.Type, interfacetype=bus.Type.lower())
+            buses.setdefault(bus.Identifier, []).append([node_name, bus.Type])
         builder.add_node_type_property(name=node_name, propname="Revision", proptype="constant", default=self.Revision)
         builder.add_node_type_property(name=node_name, propname="Version", proptype="constant", default=self.Version)
         builder.add_node_type_property(
@@ -45,7 +47,7 @@ class Sci(SciBase):
 
 
 class Fan(FanBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Fans",
@@ -54,6 +56,7 @@ class Fan(FanBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
         builder.add_node_type_property(
             name=self.Identifier, propname="MaximumPower (W)", proptype="constant", default=f"{self.MaximumPowerWatts}"
         )
@@ -66,7 +69,7 @@ class Fan(FanBase):
 
 
 class PDB(PowerDistributionBoard):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Power Distribution Boards",
@@ -75,6 +78,7 @@ class PDB(PowerDistributionBoard):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
         builder.add_node_type_property(name=self.Identifier, propname="Type", proptype="constant", default=self.Type)
         builder.add_node_type_property(
             name=self.Identifier, propname="ConnectorType", proptype="constant", default=self.ConnectorType
@@ -82,7 +86,7 @@ class PDB(PowerDistributionBoard):
 
 
 class MemorySubsystem(MemorySubsystemBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         for slot in self.Slots:
             builder.add_node_type(
                 name=slot.Identifier,
@@ -92,19 +96,24 @@ class MemorySubsystem(MemorySubsystemBase):
                 builder.add_node_type_interface(
                     name=slot.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
                 )
+                buses.setdefault(bus.Identifier, []).append([slot.Identifier, bus.Type])
+            builder.add_node_type_property(
+                name=slot.Identifier, propname="Proximity", proptype="constant", default=slot.Proximity
+            )
 
 
 class Composite(CompositeBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Composites",
         )
         builder.add_node_type_interface(name=self.Identifier, interfacename=self.Type, interfacetype=self.Type.lower())
+        builder.add_node_type_property(name=self.Identifier, propname="Type", proptype="constant", default=self.Type)
 
 
 class Mxio(MxioBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/MPICs",
@@ -113,10 +122,14 @@ class Mxio(MxioBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
+        builder.add_node_type_property(
+            name=self.Identifier, propname="ConnectorType", proptype="constant", default=self.ConnectorType
+        )
 
 
 class Mpic(MpicBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/MXIOs",
@@ -125,10 +138,20 @@ class Mpic(MpicBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
+        builder.add_node_type_property(
+            name=self.Identifier, propname="ConnectorType", proptype="constant", default=self.ConnectorType
+        )
+        builder.add_node_type_property(
+            name=self.Identifier,
+            propname="AdjustedMaximumActualPowerSupportedWatts",
+            proptype="constant",
+            default=str(self.AdjustedMaximumActualPowerSupportedWatts),
+        )
 
 
 class RtcBattery(RealTimeClockBattery):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/RTC Batteries",
@@ -136,7 +159,7 @@ class RtcBattery(RealTimeClockBattery):
 
 
 class PowerSupply(PowerSupplyBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Power Supplies",
@@ -145,10 +168,14 @@ class PowerSupply(PowerSupplyBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
+        builder.add_node_type_property(
+            name=self.Identifier, propname="ConnectorType", proptype="constant", default=self.ConnectorType
+        )
 
 
 class OCPMezzanineSlot(OCPMezzanineSlotBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/OCPMezzanineSlots",
@@ -157,10 +184,17 @@ class OCPMezzanineSlot(OCPMezzanineSlotBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
+        builder.add_node_type_property(
+            name=self.Identifier, propname="Version", proptype="constant", default=self.Version
+        )
+        builder.add_node_type_property(
+            name=self.Identifier, propname="FormFactor", proptype="constant", default=self.FormFactor
+        )
 
 
 class ControlPanel(ControlPanelBase):
-    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/ControlPanels",
@@ -169,3 +203,4 @@ class ControlPanel(ControlPanelBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+            buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])

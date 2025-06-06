@@ -30,25 +30,25 @@ app = typer.Typer(pretty_exceptions_show_locals=False)
 # app = typer.Typer()
 
 
-def add_node(fru: FRU, prop: str, class_name: type, specification_builder: SpecificationBuilder) -> None:
+def add_node(fru: FRU, prop: str, class_name: type, buses: dict, specification_builder: SpecificationBuilder) -> None:
     node_data = getattr(fru.HPM.Connectors, prop)[0].model_dump()
     node = class_name(**node_data)
-    node.to_spec_node(specification_builder)
+    node.to_spec_node(buses, specification_builder)
 
 
-def create_spec(fru: FRU, output_spec: str, workspace: Path) -> SpecificationBuilder:
-    add_node(fru, "SOCs", Soc, specification_builder)
-    add_node(fru, "MemorySubsystems", MemorySubsystem, specification_builder)
-    add_node(fru, "Composites", Composite, specification_builder)
-    add_node(fru, "Mxios", Mxio, specification_builder)
-    add_node(fru, "Mpics", Mpic, specification_builder)
-    add_node(fru, "PowerSupplies", PowerSupply, specification_builder)
-    add_node(fru, "OCPMezzanineSlots", OCPMezzanineSlot, specification_builder)
-    add_node(fru, "ControlPanels", ControlPanel, specification_builder)
-    add_node(fru, "SCIs", Sci, specification_builder)
-    add_node(fru, "Fans", Fan, specification_builder)
-    add_node(fru, "RealTimeClockBatteries", RtcBattery, specification_builder)
-    add_node(fru, "PowerDistributionBoards", PDB, specification_builder)
+def create_spec(fru: FRU, buses: dict, output_spec: str, workspace: Path) -> SpecificationBuilder:
+    add_node(fru, "SOCs", Soc, buses, specification_builder)
+    add_node(fru, "MemorySubsystems", MemorySubsystem, buses, specification_builder)
+    add_node(fru, "Composites", Composite, buses, specification_builder)
+    add_node(fru, "Mxios", Mxio, buses, specification_builder)
+    add_node(fru, "Mpics", Mpic, buses, specification_builder)
+    add_node(fru, "PowerSupplies", PowerSupply, buses, specification_builder)
+    add_node(fru, "OCPMezzanineSlots", OCPMezzanineSlot, buses, specification_builder)
+    add_node(fru, "ControlPanels", ControlPanel, buses, specification_builder)
+    add_node(fru, "SCIs", Sci, buses, specification_builder)
+    add_node(fru, "Fans", Fan, buses, specification_builder)
+    add_node(fru, "RealTimeClockBatteries", RtcBattery, buses, specification_builder)
+    add_node(fru, "PowerDistributionBoards", PDB, buses, specification_builder)
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
@@ -68,7 +68,7 @@ def get_interface_from_node(nodes: dict, graph: GraphBuilder, device_data: tuple
     return node.get(AttributeType.INTERFACE, name=device_data[1])[0]
 
 
-def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -> None:
+def create_graph(fru: FRU, buses: dict, output_spec: str, graph_name: str, workspace: Path) -> None:
     builder = GraphBuilder(
         specification=output_spec, specification_version=specification_builder.version, workspace_directory=workspace
     )
@@ -77,26 +77,7 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
     for node in output_spec["nodes"]:
         nodes.update({node["name"]: graph.create_node(name=node["name"])})
 
-    buses: dict = dict()
-    fru_dict = fru.model_dump()
-    fru_hpm_connectors = fru_dict["HPM"]["Connectors"]
-    for conn_name in fru_hpm_connectors:
-        connector = fru_hpm_connectors[conn_name][0]
-        connected_buses = {}
-        identifier = ""
-        if "Identifier" in connector:
-            identifier = connector["Identifier"]
-            if "ConnectedBuses" in connector:
-                connected_buses = connector["ConnectedBuses"]
-        elif conn_name == "MemorySubsystems":
-            identifier = connector["Slots"][0]["Identifier"]
-            connected_buses = connector["Slots"][0]["ConnectedBuses"]
-        elif conn_name == "SCIs":
-            identifier = f"Rev-{connector['Revision']}-ver-{connector['Version']}"
-            connected_buses = connector["ConnectedBuses"]
-        for bus in connected_buses:
-            buses.setdefault(bus["Identifier"], []).append([identifier, bus["Type"]])
-    print(buses)
+    # print(buses)
     for bus in buses:
         devices = buses[bus]
         if len(devices) < 2:
@@ -119,9 +100,9 @@ def main(fru_json: str, output_spec: str, output_graph: str) -> None:
         build_prepare(workspace, skip_install_deps=True)
     else:
         build_prepare(workspace)
-
-    spec = create_spec(fru, output_spec, workspace)
-    create_graph(fru, spec, output_graph, workspace)
+    buses: dict = {}
+    spec = create_spec(fru, buses, output_spec, workspace)
+    create_graph(fru, buses, spec, output_graph, workspace)
 
 
 if __name__ == "__main__":

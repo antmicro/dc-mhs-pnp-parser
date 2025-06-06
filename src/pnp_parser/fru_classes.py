@@ -30,18 +30,17 @@ class Soc(SocBase):
 
 class Sci(SciBase):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        node_name = f"Rev-{self.Revision}-ver-{self.Version}"
         builder.add_node_type(
-            name="DC-SCM 2.1",
+            name=node_name,
             category="Connectors/SCIs",
         )
         for bus in self.ConnectedBuses:
-            builder.add_node_type_interface(name="DC-SCM 2.1", interfacename=bus.Type, interfacetype=bus.Type.lower())
+            builder.add_node_type_interface(name=node_name, interfacename=bus.Type, interfacetype=bus.Type.lower())
+        builder.add_node_type_property(name=node_name, propname="Revision", proptype="constant", default=self.Revision)
+        builder.add_node_type_property(name=node_name, propname="Version", proptype="constant", default=self.Version)
         builder.add_node_type_property(
-            name="DC-SCM 2.1", propname="Revision", proptype="constant", default=self.Revision
-        )
-        builder.add_node_type_property(name="DC-SCM 2.1", propname="Version", proptype="constant", default=self.Version)
-        builder.add_node_type_property(
-            name="DC-SCM 2.1", propname="CommonCircuitType", proptype="constant", default=self.CommonCircuitType
+            name=node_name, propname="CommonCircuitType", proptype="constant", default=self.CommonCircuitType
         )
 
 

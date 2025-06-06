@@ -13,7 +13,7 @@
         MPIC-1
     - [x] PowerSupplies
         PS-1
-    - [ ] OCPMezzanineSlots
+    - [x] OCPMezzanineSlots
         OCPMEZZ-1
     - [ ] ControlPanels
         CP-1

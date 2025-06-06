@@ -4,7 +4,8 @@ from pathlib import Path
 
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pipeline_manager.frontend_builder import build_prepare
-from .fru_model import FRU, MemorySubsystem, Composite
+from .fru_model import FRU, MemorySubsystem as MemorySubsystemBase
+from .fru_model import Composite as CompositeBase
 from .fru_model import SOC as BaseSoc
 from .fru_model import SCI as SciBase
 from .fru_model import Fan as FanBase
@@ -66,7 +67,7 @@ class Fan(FanBase):
         )
 
 
-class MemSubsystem(MemorySubsystem):
+class MemorySubsystem(MemorySubsystemBase):
     def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
         for slot in self.Slots:
             builder.add_node_type(
@@ -77,6 +78,15 @@ class MemSubsystem(MemorySubsystem):
                 builder.add_node_type_interface(
                     name=slot.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
                 )
+
+
+class Composite(CompositeBase):
+    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        builder.add_node_type(
+            name=self.Identifier,
+            category="Connectors/Composites",
+        )
+        builder.add_node_type_interface(name=self.Identifier, interfacename=self.Type, interfacetype=self.Type.lower())
 
 
 def add_node(fru: FRU, prop: str, class_name: type, specification_builder: SpecificationBuilder) -> None:
@@ -92,7 +102,8 @@ def main(fru_json: str, output_spec: str) -> None:
     fru = FRU.model_validate(hpm_data)
 
     add_node(fru, "SOCs", Soc, specification_builder)
-    add_node(fru, "MemorySubsystems", MemSubsystem, specification_builder)
+    add_node(fru, "MemorySubsystems", MemorySubsystem, specification_builder)
+    add_node(fru, "Composites", Composite, specification_builder)
     add_node(fru, "SCIs", Sci, specification_builder)
     add_node(fru, "Fans", Fan, specification_builder)
 

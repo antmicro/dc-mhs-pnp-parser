@@ -5,7 +5,7 @@
     - [x] MemorySubsystems
         SLOTS
             SLOT-0
-    - [ ] Composites
+    - [x] Composites
         RISER-1
     - [ ] Mxios
         MXIO-1

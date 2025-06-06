@@ -13,6 +13,7 @@ from .fru_model import PowerSupply as PowerSupplyBase
 from .fru_model import SOC as BaseSoc
 from .fru_model import SCI as SciBase
 from .fru_model import Fan as FanBase
+from .fru_model import RealTimeClockBattery
 
 SPECIFICATION_VERSION = "20240723.13"
 
@@ -115,6 +116,12 @@ class Mpic(MpicBase):
             builder.add_node_type_interface(
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
+class RtcBattery(RealTimeClockBattery):
+    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        builder.add_node_type(
+            name=self.Identifier,
+            category="Connectors/Mxios",
+        )
 
 
 class PowerSupply(PowerSupplyBase):
@@ -149,6 +156,7 @@ def main(fru_json: str, output_spec: str) -> None:
     add_node(fru, "PowerSupplies", PowerSupply, specification_builder)
     add_node(fru, "SCIs", Sci, specification_builder)
     add_node(fru, "Fans", Fan, specification_builder)
+    add_node(fru, "RealTimeClockBatteries", RtcBattery, specification_builder)
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)

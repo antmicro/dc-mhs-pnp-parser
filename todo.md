@@ -19,7 +19,7 @@
         CP-1
     - [ ] PowerDistributionBoards
         PDB-1
-    - [ ] RealTimeClockBatteries
+    - [x] RealTimeClockBatteries
         RTC-1
     - [x] Fans
         FAN-1

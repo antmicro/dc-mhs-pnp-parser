@@ -9,7 +9,7 @@
         RISER-1
     - [x] Mxios
         MXIO-1
-    - [ ] Mpics
+    - [x] Mpics
         MPIC-1
     - [ ] PowerSupplies
         PS-1

@@ -8,6 +8,7 @@ from .fru_model import FRU
 from .fru_model import MemorySubsystem as MemorySubsystemBase
 from .fru_model import Composite as CompositeBase
 from .fru_model import Mxio as MxioBase
+from .fru_model import Mpic as MpicBase
 from .fru_model import SOC as BaseSoc
 from .fru_model import SCI as SciBase
 from .fru_model import Fan as FanBase
@@ -103,6 +104,18 @@ class Mxio(MxioBase):
             )
 
 
+class Mpic(MpicBase):
+    def to_spec_node(self, builder: SpecificationBuilder = specification_builder) -> None:
+        builder.add_node_type(
+            name=self.Identifier,
+            category="Connectors/Mpics",
+        )
+        for bus in self.ConnectedBuses:
+            builder.add_node_type_interface(
+                name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
+            )
+
+
 def add_node(fru: FRU, prop: str, class_name: type, specification_builder: SpecificationBuilder) -> None:
     node_data = getattr(fru.HPM.Connectors, prop)[0].model_dump()
     node = class_name(**node_data)
@@ -119,6 +132,7 @@ def main(fru_json: str, output_spec: str) -> None:
     add_node(fru, "MemorySubsystems", MemorySubsystem, specification_builder)
     add_node(fru, "Composites", Composite, specification_builder)
     add_node(fru, "Mxios", Mxio, specification_builder)
+    add_node(fru, "Mpics", Mpic, specification_builder)
     add_node(fru, "SCIs", Sci, specification_builder)
     add_node(fru, "Fans", Fan, specification_builder)
 

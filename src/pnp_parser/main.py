@@ -51,6 +51,7 @@ def create_spec(fru: FRU, output_spec: str, workspace: Path) -> SpecificationBui
 
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
+    specification_builder.metadata_add_param(paramname="layout", paramvalue="CytoscapeEngine - grid")
 
     specification = specification_builder.create_and_validate_spec(
         dump_spec="dump.json", sort_spec=True, workspacedir=str(workspace)
@@ -65,8 +66,9 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
         specification=output_spec, specification_version=specification_builder.version, workspace_directory=workspace
     )
     graph = builder.create_graph()
+    nodes: dict = {}
     for node in output_spec["nodes"]:
-        graph.create_node(name=node["name"])
+        nodes.update({node["name"]: graph.create_node(name=node["name"])})
 
     buses: dict = dict()
     for conn in fru.HPM.Connectors:
@@ -82,9 +84,12 @@ def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -
         if len(devices) < 2:
             continue
         first_dev = devices[0]
+        first_node = nodes[first_dev[0]]
+        print(first_node)
+        print(first_node.get(first_dev[1]))
         for device in devices[1:]:
-            # graph.create_connection(first_dev, device)
-            pass
+            # get interface from device
+            graph.create_connection(nodes[first_dev], device)
     builder.save(graph_name)
 
 

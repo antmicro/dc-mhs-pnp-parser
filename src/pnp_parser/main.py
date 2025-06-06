@@ -100,7 +100,7 @@ def main(fru_json: str, output_spec: str) -> None:
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
 
     workspace = Path("workspace")
-    if not workspace.exists():
+    if workspace.exists():
         build_prepare(workspace, skip_install_deps=True)
     else:
         build_prepare(workspace)

@@ -25,7 +25,8 @@ from .fru_classes import (
 )
 
 
-app = typer.Typer()
+app = typer.Typer(pretty_exceptions_show_locals=False)
+# app = typer.Typer()
 
 
 def add_node(fru: FRU, prop: str, class_name: type, specification_builder: SpecificationBuilder) -> None:
@@ -51,7 +52,6 @@ def create_spec(fru: FRU, output_spec: str, workspace: Path) -> SpecificationBui
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
 
-
     specification = specification_builder.create_and_validate_spec(
         dump_spec="dump.json", sort_spec=True, workspacedir=str(workspace)
     )
@@ -62,14 +62,18 @@ def create_spec(fru: FRU, output_spec: str, workspace: Path) -> SpecificationBui
 
 def create_graph(fru: FRU, output_spec: str, graph_name: str, workspace: Path) -> None:
     builder = GraphBuilder(
-        specification=output_spec,
-        specification_version=specification_builder.version,
-        workspace_directory=workspace
+        specification=output_spec, specification_version=specification_builder.version, workspace_directory=workspace
     )
     graph = builder.create_graph()
     for node in output_spec["nodes"]:
         graph.create_node(name=node["name"])
-    builder.validate()
+
+    buses: dict = dict()
+    for conn in fru.HPM.Connectors:
+        print(conn[0])
+        for bus in getattr(conn, "ConnectedBuses"):
+            buses[bus["Identifier"]].append(conn["Identifier"])
+    print(buses)
     builder.save(graph_name)
 
 

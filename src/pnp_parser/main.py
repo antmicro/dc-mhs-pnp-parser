@@ -9,50 +9,25 @@ from pipeline_manager.dataflow_builder.entities import Node
 from pipeline_manager.dataflow_builder.dataflow_graph import DataflowGraph
 from pipeline_manager.dataflow_builder.dataflow_graph import AttributeType
 from .fru_model import FRU
-from .fru_classes import (
-    Soc,
-    MemorySubsystem,
-    Composite,
-    Mxio,
-    Mpic,
-    PowerSupply,
-    OCPMezzanineSlot,
-    ControlPanel,
-    Sci,
-    Fan,
-    RtcBattery,
-    PDB,
-    specification_builder,
-)
+from .hpm import add_hpm_nodes_to_spec
+from .buses import add_buses_nodes_to_spec
 
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
 # app = typer.Typer()
 
-
-def add_node(fru: FRU, prop: str, class_name: type, buses: dict, specification_builder: SpecificationBuilder) -> None:
-    node_data = getattr(fru.HPM.Connectors, prop)[0].model_dump()
-    node = class_name(**node_data)
-    node.to_spec_node(buses, specification_builder)
+SPECIFICATION_VERSION = "20240723.13"
+specification_builder = SpecificationBuilder(spec_version=SPECIFICATION_VERSION)
 
 
 def create_spec(fru: FRU, buses: dict, output_spec: str, workspace: Path) -> SpecificationBuilder:
-    add_node(fru, "SOCs", Soc, buses, specification_builder)
-    add_node(fru, "MemorySubsystems", MemorySubsystem, buses, specification_builder)
-    add_node(fru, "Composites", Composite, buses, specification_builder)
-    add_node(fru, "Mxios", Mxio, buses, specification_builder)
-    add_node(fru, "Mpics", Mpic, buses, specification_builder)
-    add_node(fru, "PowerSupplies", PowerSupply, buses, specification_builder)
-    add_node(fru, "OCPMezzanineSlots", OCPMezzanineSlot, buses, specification_builder)
-    add_node(fru, "ControlPanels", ControlPanel, buses, specification_builder)
-    add_node(fru, "SCIs", Sci, buses, specification_builder)
-    add_node(fru, "Fans", Fan, buses, specification_builder)
-    add_node(fru, "RealTimeClockBatteries", RtcBattery, buses, specification_builder)
-    add_node(fru, "PowerDistributionBoards", PDB, buses, specification_builder)
-
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
     specification_builder.metadata_add_param(paramname="layout", paramvalue="CytoscapeEngine - grid")
+
+
+    add_hpm_nodes_to_spec(fru.HPM.Connectors, buses, specification_builder)
+    add_buses_nodes_to_spec(fru.Buses, buses, specification_builder)
 
     specification = specification_builder.create_and_validate_spec(
         dump_spec="dump.json", sort_spec=True, workspacedir=str(workspace)

@@ -10,14 +10,13 @@ from .fru_model import Sci as SciBase
 from .fru_model import Fan as FanBase
 from .fru_model import RealTimeClockBattery
 from .fru_model import PowerDistributionBoard
+from .fru_model import Connectors
+from .fru_model import HPM as HPMBase
 from pipeline_manager.specification_builder import SpecificationBuilder
-
-SPECIFICATION_VERSION = "20240723.13"
-specification_builder = SpecificationBuilder(spec_version=SPECIFICATION_VERSION)
 
 
 class Soc(SocBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/SoCs",
@@ -30,15 +29,22 @@ class Soc(SocBase):
 
 
 class Sci(SciBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
-        node_name = f"Rev-{self.Revision}-ver-{self.Version}"
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
+        node_name = f"DC-SCM Rev.{self.Revision}"
         builder.add_node_type(
             name=node_name,
             category="Connectors/SCIs",
         )
         for bus in self.ConnectedBuses:
-            builder.add_node_type_interface(name=node_name, interfacename=bus.Type, interfacetype=bus.Type.lower())
-            buses.setdefault(bus.Identifier, []).append([node_name, bus.Type])
+            builder.add_node_type_interface(
+                name=node_name, interfacename=bus.Type, interfacetype=bus.Type.lower(), side="right"
+            )
+            buses.setdefault(bus.Identifier, []).append(
+                [
+                    node_name,
+                    bus.Type,
+                ]
+            )
         builder.add_node_type_property(name=node_name, propname="Revision", proptype="constant", default=self.Revision)
         builder.add_node_type_property(name=node_name, propname="Version", proptype="constant", default=self.Version)
         builder.add_node_type_property(
@@ -47,7 +53,7 @@ class Sci(SciBase):
 
 
 class Fan(FanBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Fans",
@@ -69,7 +75,7 @@ class Fan(FanBase):
 
 
 class PDB(PowerDistributionBoard):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Power Distribution Boards",
@@ -86,7 +92,7 @@ class PDB(PowerDistributionBoard):
 
 
 class MemorySubsystem(MemorySubsystemBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         for slot in self.Slots:
             builder.add_node_type(
                 name=slot.Identifier,
@@ -103,7 +109,7 @@ class MemorySubsystem(MemorySubsystemBase):
 
 
 class Composite(CompositeBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Composites",
@@ -113,7 +119,7 @@ class Composite(CompositeBase):
 
 
 class Mxio(MxioBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/MPICs",
@@ -129,7 +135,7 @@ class Mxio(MxioBase):
 
 
 class Mpic(MpicBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/MXIOs",
@@ -151,7 +157,7 @@ class Mpic(MpicBase):
 
 
 class RtcBattery(RealTimeClockBattery):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/RTC Batteries",
@@ -159,7 +165,7 @@ class RtcBattery(RealTimeClockBattery):
 
 
 class PowerSupply(PowerSupplyBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/Power Supplies",
@@ -175,7 +181,7 @@ class PowerSupply(PowerSupplyBase):
 
 
 class OCPMezzanineSlot(OCPMezzanineSlotBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/OCPMezzanineSlots",
@@ -194,7 +200,7 @@ class OCPMezzanineSlot(OCPMezzanineSlotBase):
 
 
 class ControlPanel(ControlPanelBase):
-    def to_spec_node(self, buses: dict, builder: SpecificationBuilder = specification_builder) -> None:
+    def to_spec_node(self, buses: dict, builder: SpecificationBuilder) -> None:
         builder.add_node_type(
             name=self.Identifier,
             category="Connectors/ControlPanels",
@@ -204,3 +210,26 @@ class ControlPanel(ControlPanelBase):
                 name=self.Identifier, interfacename=bus.Type, interfacetype=bus.Type.lower()
             )
             buses.setdefault(bus.Identifier, []).append([self.Identifier, bus.Type])
+
+
+def add_node(
+    connectors: Connectors, prop: str, class_name: type, buses: dict, specification_builder: SpecificationBuilder
+) -> None:
+    node_data = getattr(connectors, prop)[0].model_dump()
+    node = class_name(**node_data)
+    node.to_spec_node(buses, specification_builder)
+
+
+def add_hpm_nodes_to_spec(connectors: Connectors, buses: dict, specification_builder: SpecificationBuilder) -> None:
+    add_node(connectors, "SOCs", Soc, buses, specification_builder)
+    add_node(connectors, "MemorySubsystems", MemorySubsystem, buses, specification_builder)
+    add_node(connectors, "Composites", Composite, buses, specification_builder)
+    add_node(connectors, "Mxios", Mxio, buses, specification_builder)
+    add_node(connectors, "Mpics", Mpic, buses, specification_builder)
+    add_node(connectors, "PowerSupplies", PowerSupply, buses, specification_builder)
+    add_node(connectors, "OCPMezzanineSlots", OCPMezzanineSlot, buses, specification_builder)
+    add_node(connectors, "ControlPanels", ControlPanel, buses, specification_builder)
+    add_node(connectors, "SCIs", Sci, buses, specification_builder)
+    add_node(connectors, "Fans", Fan, buses, specification_builder)
+    add_node(connectors, "RealTimeClockBatteries", RtcBattery, buses, specification_builder)
+    add_node(connectors, "PowerDistributionBoards", PDB, buses, specification_builder)

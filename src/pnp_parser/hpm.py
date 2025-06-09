@@ -11,7 +11,6 @@ from .fru_model import Fan as FanBase
 from .fru_model import RealTimeClockBattery
 from .fru_model import PowerDistributionBoard
 from .fru_model import Connectors
-from .fru_model import HPM as HPMBase
 from pipeline_manager.specification_builder import SpecificationBuilder
 
 

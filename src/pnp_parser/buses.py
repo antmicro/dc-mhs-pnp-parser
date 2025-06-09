@@ -1,5 +1,4 @@
 from pipeline_manager.specification_builder import SpecificationBuilder, SpecificationBuilderException
-from .fru_model import Device
 
 from .fru_model import Buses
 
@@ -43,4 +42,3 @@ def add_buses_nodes_to_spec(fru_buses: Buses, buses: dict, builder: Specificatio
                 except SpecificationBuilderException:
                     pass
                 buses.setdefault(bus_body[0].Identifier, []).append([connected_device.Endpoint, bus_name])
-

@@ -5,8 +5,6 @@ from pathlib import Path
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pipeline_manager.frontend_builder import build_prepare
 from pipeline_manager.dataflow_builder.dataflow_builder import GraphBuilder
-from pipeline_manager.dataflow_builder.entities import Node
-from pipeline_manager.dataflow_builder.dataflow_graph import DataflowGraph
 from pipeline_manager.dataflow_builder.dataflow_graph import AttributeType
 from .fru_model import FRU
 from .hpm import add_hpm_nodes_to_spec
@@ -24,7 +22,6 @@ def create_spec(fru: FRU, buses: dict, output_spec: str, workspace: Path) -> Spe
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
     specification_builder.metadata_add_param(paramname="layout", paramvalue="CytoscapeEngine - grid")
-
 
     add_hpm_nodes_to_spec(fru.HPM.Connectors, buses, specification_builder)
     add_buses_nodes_to_spec(fru.Buses, buses, specification_builder)

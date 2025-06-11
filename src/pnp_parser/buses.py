@@ -1,9 +1,10 @@
 from pipeline_manager.specification_builder import SpecificationBuilder, SpecificationBuilderException
 
+from typing import List
 from .fru_model import Buses
 
 
-def add_buses_nodes_to_spec(fru_buses: Buses, buses: dict, builder: SpecificationBuilder) -> None:
+def add_buses_nodes_to_spec(fru_buses: Buses, buses: dict, nodes: List[str], builder: SpecificationBuilder) -> None:
     for bus_name, bus_body in fru_buses:
         if hasattr(bus_body[0], "Trees"):
             if hasattr(bus_body[0].Trees[0], "Devices"):
@@ -28,10 +29,11 @@ def add_buses_nodes_to_spec(fru_buses: Buses, buses: dict, builder: Specificatio
                             name=device.Identifier, propname="Address", proptype="constant", default=device.Address
                         )
                     buses.setdefault(bus_body[0].Identifier, []).append([device.Identifier, bus_name])
+                    nodes.append(device.Identifier)
         if hasattr(bus_body[0], "ConnectedDevices"):
             for connected_device in bus_body[0].ConnectedDevices:
                 try:
-                    builder.add_node_type(name=connected_device.Endpoint)
+                    builder.add_node_type(name=connected_device.Endpoint, category=f"Devices/{bus_name}")
                 except SpecificationBuilderException:
                     pass
 
@@ -42,3 +44,4 @@ def add_buses_nodes_to_spec(fru_buses: Buses, buses: dict, builder: Specificatio
                 except SpecificationBuilderException:
                     pass
                 buses.setdefault(bus_body[0].Identifier, []).append([connected_device.Endpoint, bus_name])
+                nodes.append(connected_device.Endpoint)

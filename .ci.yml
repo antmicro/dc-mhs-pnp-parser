@@ -16,6 +16,7 @@ build:
     - unzip Release_0_3_0.zip
     - mv Release_0_3_0/\ hpm-fru-mockup\ v0.5.2.json Release_0_3_0/hpm-fru-mockup-v0.5.2.json
     - pnp-parser Release_0_3_0/hpm-fru-mockup-v0.5.2.json hpm-fru-mockup-v0.5.2-spec.json hpm-fru-mockup-v0.5.2-dataflow.json
+    - python3 src/graph_aligner/graph_aligner.py write position.json hpm-fru-mockup-v0.5.2-dataflow.json
   artifacts:
     expire_in: 4 week
     when: always

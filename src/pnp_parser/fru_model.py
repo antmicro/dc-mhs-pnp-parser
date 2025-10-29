@@ -5,9 +5,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Annotated, Any
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel, constr
+from pydantic import BaseModel, ConfigDict, Field, RootModel, StringConstraints
 
 
 class ComponentClass(Enum):
@@ -143,11 +143,11 @@ class ComponentAlias(RootModel[str]):
 
 class AttachedConnectorListItem(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    type: Optional[str] = Field(None, alias="Type")
+    type: str | None = Field(None, alias="Type")
     """
     The type of connector for this reference.
     """
-    chip_select: Optional[float] = Field(None, alias="ChipSelect")
+    chip_select: float | None = Field(None, alias="ChipSelect")
     """
     The chip selection pin needed to access this device. This is primarily intended for use with ESPI, QSPI and SPI bus connections.
     """
@@ -155,14 +155,14 @@ class AttachedConnectorListItem(BaseModel):
     """
     The endpoint connector for this reference.
     """
-    mmbi_capable: Optional[bool] = Field(None, alias="MMBICapable")
+    mmbi_capable: bool | None = Field(None, alias="MMBICapable")
     """
     Whether the connector supports MMBI via the attached bus.
     """
 
 
-class AttachedConnectorList(RootModel[List[AttachedConnectorListItem]]):
-    root: List[AttachedConnectorListItem]
+class AttachedConnectorList(RootModel[list[AttachedConnectorListItem]]):
+    root: list[AttachedConnectorListItem]
     """
     A collection of references to connectors attached to a bus.
     """
@@ -174,23 +174,23 @@ class ConnectedDeviceListItem(BaseModel):
     """
     This instance of a connected device.
     """
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    address: Optional[str] = Field(None, alias="Address")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    address: str | None = Field(None, alias="Address")
     """
     The bus-specific hardware address needed to access a connected device, such as an I2C address.
     """
-    random_access_capable: Optional[bool] = Field(None, alias="RandomAccessCapable")
+    random_access_capable: bool | None = Field(None, alias="RandomAccessCapable")
     """
     Indicates whether the BMC can access memory on this device in random fashion through this connection.
     """
-    chip_select: Optional[float] = Field(None, alias="ChipSelect")
+    chip_select: float | None = Field(None, alias="ChipSelect")
     """
     The chip selection pin needed to access this device. This is primarily intended for use with ESPI, QSPI and SPI bus connections.
     """
 
 
-class ConnectedDeviceList(RootModel[List[ConnectedDeviceListItem]]):
-    root: List[ConnectedDeviceListItem]
+class ConnectedDeviceList(RootModel[list[ConnectedDeviceListItem]]):
+    root: list[ConnectedDeviceListItem]
     """
     Information about devices connected to a bus.
     """
@@ -239,15 +239,15 @@ class RequiredPowerState(Enum):
     other = "Other"
 
 
-class Models(RootModel[List[str]]):
-    root: List[str]
+class Models(RootModel[list[str]]):
+    root: list[str]
     """
     The possible models for this component.
     """
 
 
-class Manufacturers(RootModel[List[str]]):
-    root: List[str]
+class Manufacturers(RootModel[list[str]]):
+    root: list[str]
     """
     The possible manufacturers for this component.
     """
@@ -272,8 +272,8 @@ class MUXChannelConfigItem(BaseModel):
     """
 
 
-class MUXChannelConfig(RootModel[List[MUXChannelConfigItem]]):
-    root: List[MUXChannelConfigItem]
+class MUXChannelConfig(RootModel[list[MUXChannelConfigItem]]):
+    root: list[MUXChannelConfigItem]
     """
     Information about selecting a channel in a MUX.
     """
@@ -281,19 +281,19 @@ class MUXChannelConfig(RootModel[List[MUXChannelConfigItem]]):
 
 class Signal1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    type: Optional[str] = Field(None, alias="Type")
+    type: str | None = Field(None, alias="Type")
     """
     The type locating the signal used to control the pin.
     """
-    type_id: Optional[str] = Field(None, alias="TypeID")
+    type_id: str | None = Field(None, alias="TypeID")
     """
     The specific device housing the signal used to control the pin.
     """
-    subtype: Optional[str] = Field(None, alias="Subtype")
+    subtype: str | None = Field(None, alias="Subtype")
     """
     The subtype locating the signal used to control the pina pin.
     """
-    subtype_id: Optional[str] = Field(None, alias="SubtypeID")
+    subtype_id: str | None = Field(None, alias="SubtypeID")
     """
     The specific signal used to control the pin.
     """
@@ -311,8 +311,8 @@ class MUXControlItem(BaseModel):
     """
 
 
-class MUXControl(RootModel[List[MUXControlItem]]):
-    root: List[MUXControlItem]
+class MUXControl(RootModel[list[MUXControlItem]]):
+    root: list[MUXControlItem]
     """
     Information about mechanisms used to control this MUX.
     """
@@ -320,26 +320,26 @@ class MUXControl(RootModel[List[MUXControlItem]]):
 
 class Signal(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    connector_name: Optional[str] = Field(None, alias="ConnectorName")
+    connector_name: str | None = Field(None, alias="ConnectorName")
     """
     The name of the signal as defined by a connector.
     """
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    type: Optional[str] = Field(None, alias="Type")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    type: str | None = Field(None, alias="Type")
     """
     The type for this physical signal.
     """
-    type_id: Optional[NamedComponent] = Field(None, alias="TypeID")
-    subtype: Optional[str] = Field(None, alias="Subtype")
+    type_id: NamedComponent | None = Field(None, alias="TypeID")
+    subtype: str | None = Field(None, alias="Subtype")
     """
     The connector subtype for this physical signal.
     """
-    subtype_id: Optional[NamedComponent] = Field(None, alias="SubtypeID")
+    subtype_id: NamedComponent | None = Field(None, alias="SubtypeID")
     physical_pin: str = Field(alias="PhysicalPin")
     """
     The physical pin for this physical signal reference.
     """
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The Netlist name for this physical signal reference.
     """
@@ -348,33 +348,33 @@ class Signal(BaseModel):
 class ConnectorsComposite(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     connector_type: str = Field(alias="ConnectorType")
     """
     The type of the composite.
     """
-    data_file: Optional[str] = Field(None, alias="DataFile")
+    data_file: str | None = Field(None, alias="DataFile")
     """
     The data file with JSON information specific to this composite.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    mpi_cs: List[str] = Field(alias="MPICs")
+    mpi_cs: list[str] = Field(alias="MPICs")
     """
     The MPICs used by the composite.
     """
-    mxi_os: List[str] = Field(alias="MXIOs")
+    mxi_os: list[str] = Field(alias="MXIOs")
     """
     The MXIOs used by the composite.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class FlexIO(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this FLEXIO.
     """
@@ -383,8 +383,8 @@ class FlexIO(BaseModel):
 class Sideband(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this sideband.
     """
@@ -393,20 +393,20 @@ class Sideband(BaseModel):
 class BusesDisplayPort(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesESPI(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -414,7 +414,7 @@ class BusesESPI(BaseModel):
     """
     The maximum clock speed for this ESPI bus.
     """
-    alert_usage: Optional[AlertUsage] = Field(None, alias="AlertUsage")
+    alert_usage: AlertUsage | None = Field(None, alias="AlertUsage")
     """
     The manner in which alerts are signaled on the bus.
     """
@@ -422,19 +422,19 @@ class BusesESPI(BaseModel):
     """
     The data transfer mode supported by this ESPI bus.
     """
-    controller: Optional[str] = Field(None, alias="Controller")
+    controller: str | None = Field(None, alias="Controller")
     """
     The component that receives interrupt requests and controls this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class Channel(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    voltage_tenths_volts: Optional[int] = Field(None, alias="VoltageTenthsVolts")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    voltage_tenths_volts: int | None = Field(None, alias="VoltageTenthsVolts")
     """
     The voltage needed to drive this MUX channel.
     """
@@ -449,57 +449,57 @@ class Channel(BaseModel):
 class MuX(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    channels: List[Channel] = Field(alias="Channels")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    channels: list[Channel] = Field(alias="Channels")
     """
     Information about I2C MUXes in this I2C segment.
     """
-    propagation_delay_ns: Optional[int] = Field(None, alias="PropagationDelayNS")
+    propagation_delay_ns: int | None = Field(None, alias="PropagationDelayNS")
     """
     The propagation delay for this MUX.
     """
-    address: Optional[str] = Field(None, alias="Address")
+    address: str | None = Field(None, alias="Address")
     """
     The I2C address for this MUX.
     """
-    models: Optional[Models] = Field(None, alias="Models")
+    models: Models | None = Field(None, alias="Models")
     manufacturers: Manufacturers = Field(alias="Manufacturers")
-    isolation_capable: Optional[bool] = Field(None, alias="IsolationCapable")
+    isolation_capable: bool | None = Field(None, alias="IsolationCapable")
     """
     Indicates whether the MUX can isolate voltage for channels.
     """
-    rise_time_ns: Optional[int] = Field(None, alias="RiseTimeNS")
+    rise_time_ns: int | None = Field(None, alias="RiseTimeNS")
     """
     The rise time for this MUX.
     """
-    fall_time_ns: Optional[int] = Field(None, alias="FallTimeNS")
+    fall_time_ns: int | None = Field(None, alias="FallTimeNS")
     """
     The fall time for this MUX.
     """
-    control: Optional[MUXControl] = Field(None, alias="Control")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    control: MUXControl | None = Field(None, alias="Control")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description of the intended usage for this MUX.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class Port(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    voltage_tenths_volts: Optional[int] = Field(None, alias="VoltageTenthsVolts")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    voltage_tenths_volts: int | None = Field(None, alias="VoltageTenthsVolts")
     """
     The voltage needed to drive this I3C port.
     """
-    target_port_mode: Optional[TargetPortMode] = Field(None, alias="TargetPortMode")
+    target_port_mode: TargetPortMode | None = Field(None, alias="TargetPortMode")
     """
     The target mode for this I3C port.
     """
     endpoint: Endpoint = Field(alias="Endpoint")
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description of the intended usage for this port.
     """
@@ -508,24 +508,24 @@ class Port(BaseModel):
 class Hub(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    ports: List[Port] = Field(alias="Ports")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    ports: list[Port] = Field(alias="Ports")
     """
     Information about I3C ports.
     """
-    propagation_delay_ns: Optional[int] = Field(None, alias="PropagationDelayNS")
+    propagation_delay_ns: int | None = Field(None, alias="PropagationDelayNS")
     """
     The propagation delay for an I3C Hub.
     """
-    address: Optional[str] = Field(None, alias="Address")
+    address: str | None = Field(None, alias="Address")
     """
     The I3C address at which this hub responds.
     """
-    models: Optional[Models] = Field(None, alias="Models")
+    models: Models | None = Field(None, alias="Models")
     manufacturers: Manufacturers = Field(alias="Manufacturers")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description of the intended usage for this hub.
     """
@@ -534,8 +534,8 @@ class Hub(BaseModel):
 class Channel1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    voltage_tenths_volts: Optional[int] = Field(None, alias="VoltageTenthsVolts")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    voltage_tenths_volts: int | None = Field(None, alias="VoltageTenthsVolts")
     """
     The voltage needed to drive this MUX channel.
     """
@@ -546,76 +546,76 @@ class Channel1(BaseModel):
 class MuX1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    channels: List[Channel1] = Field(alias="Channels")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    channels: list[Channel1] = Field(alias="Channels")
     """
     Information about channels in this I3C MUX.
     """
-    control: Optional[MUXControl] = Field(None, alias="Control")
-    propagation_delay_ns: Optional[int] = Field(None, alias="PropagationDelayNS")
+    control: MUXControl | None = Field(None, alias="Control")
+    propagation_delay_ns: int | None = Field(None, alias="PropagationDelayNS")
     """
     The propagation delay for this MUX.
     """
-    address: Optional[str] = Field(None, alias="Address")
+    address: str | None = Field(None, alias="Address")
     """
     The I3C address for this MUX.
     """
-    models: Optional[Models] = Field(None, alias="Models")
+    models: Models | None = Field(None, alias="Models")
     manufacturers: Manufacturers = Field(alias="Manufacturers")
-    level_shifting_capable: Optional[bool] = Field(None, alias="LevelShiftingCapable")
+    level_shifting_capable: bool | None = Field(None, alias="LevelShiftingCapable")
     """
     Indicates whether the MUX can shift between voltage levels.
     """
-    fault_detection_capable: Optional[bool] = Field(None, alias="FaultDetectionCapable")
+    fault_detection_capable: bool | None = Field(None, alias="FaultDetectionCapable")
     """
     Indicates whether the MUX can detect faults.
     """
-    fault_clear_signal_capable: Optional[bool] = Field(None, alias="FaultClearSignalCapable")
+    fault_clear_signal_capable: bool | None = Field(None, alias="FaultClearSignalCapable")
     """
     Indicates whether the MUX can utilize a fault clear signal.
     """
-    rise_time_ns: Optional[int] = Field(None, alias="RiseTimeNS")
+    rise_time_ns: int | None = Field(None, alias="RiseTimeNS")
     """
     The rise time for this MUX.
     """
-    fall_time_ns: Optional[int] = Field(None, alias="FallTimeNS")
+    fall_time_ns: int | None = Field(None, alias="FallTimeNS")
     """
     The fall time for this MUX.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description of the intended usage for this MUX.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class Segment1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this segment.
     """
-    hubs: Optional[List[Hub]] = Field(None, alias="Hubs")
+    hubs: list[Hub] | None = Field(None, alias="Hubs")
     """
     Information about I3C hubs.
     """
-    mu_xes: Optional[List[MuX1]] = Field(None, alias="MUXes")
+    mu_xes: list[MuX1] | None = Field(None, alias="MUXes")
     """
     Information about I3C MUXes.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesI3C(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -623,7 +623,7 @@ class BusesI3C(BaseModel):
     """
     The protocol type for this I3C bus.
     """
-    voltage_tenths_volts: Optional[int] = Field(None, alias="VoltageTenthsVolts")
+    voltage_tenths_volts: int | None = Field(None, alias="VoltageTenthsVolts")
     """
     The voltage needed to drive this I3C bus.
     """
@@ -632,7 +632,7 @@ class BusesI3C(BaseModel):
     """
     The frequency at which this I3C bus shall operate.
     """
-    segments: List[Segment1] = Field(alias="Segments")
+    segments: list[Segment1] = Field(alias="Segments")
     """
     Information about I3C segments.
     """
@@ -641,10 +641,10 @@ class BusesI3C(BaseModel):
 class Channel2(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     endpoint: Endpoint = Field(alias="Endpoint")
     mux_config: MUXChannelConfig = Field(alias="MUXConfig")
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description for this JTAG MUX channel.
     """
@@ -653,8 +653,8 @@ class Channel2(BaseModel):
 class MuX2(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    channels: List[Channel2] = Field(alias="Channels")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    channels: list[Channel2] = Field(alias="Channels")
     """
     Information about channels in a JTAG MUX.
     """
@@ -663,25 +663,25 @@ class MuX2(BaseModel):
 class Segment2(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    mu_xes: Optional[List[MuX2]] = Field(None, alias="MUXes")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    mu_xes: list[MuX2] | None = Field(None, alias="MUXes")
     """
     Information about MUXes in a JTAG segment.
     """
-    control: Optional[MUXControl] = Field(None, alias="Control")
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    control: MUXControl | None = Field(None, alias="Control")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesJTAG(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    segments: List[Segment2] = Field(alias="Segments")
+    segments: list[Segment2] = Field(alias="Segments")
     """
     Information about JTAG segments.
     """
@@ -690,8 +690,8 @@ class BusesJTAG(BaseModel):
 class BusesLTPI(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -700,26 +700,26 @@ class BusesLTPI(BaseModel):
     """
     The maximum clock speed for this LTPI bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesMPESTI(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class Channel3(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     endpoint: str = Field(alias="Endpoint")
     """
     The endpoint to which this channel is connnected.
@@ -729,12 +729,12 @@ class Channel3(BaseModel):
 class Isolation(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    channels: List[Channel3] = Field(alias="Channels")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    channels: list[Channel3] = Field(alias="Channels")
     """
     Information about channels for isolation management.
     """
-    isolation_control: List[IsolationControlItem] = Field(alias="IsolationControl")
+    isolation_control: list[IsolationControlItem] = Field(alias="IsolationControl")
     """
     Information about control for isolation management.
     """
@@ -743,28 +743,28 @@ class Isolation(BaseModel):
 class Segment3(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this segment.
     """
-    isolation: Optional[Isolation] = Field(None, alias="Isolation")
+    isolation: Isolation | None = Field(None, alias="Isolation")
     """
     Information about isolation management for this NC-SI RBT bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesNCSIRBT(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    segments: List[Segment3] = Field(alias="Segments")
+    segments: list[Segment3] = Field(alias="Segments")
     """
     Information about segments for this NC-SI RBT bus.
     """
@@ -773,8 +773,8 @@ class BusesNCSIRBT(BaseModel):
 class Component1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    type: Optional[Type] = Field(None, alias="Type")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    type: Type | None = Field(None, alias="Type")
     """
     The type of this PCIe component.
     """
@@ -806,7 +806,7 @@ class Component1(BaseModel):
     """
     The width, in PCIe lanes, for this PCIe component.
     """
-    lane_mapping: List[int] = Field(alias="LaneMapping")
+    lane_mapping: list[int] = Field(alias="LaneMapping")
     """
     The mapping of lanes for this PCIe component.
     """
@@ -846,47 +846,47 @@ class Component1(BaseModel):
     """
     The latency of this PCIe switch.
     """
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
     endpoint: Endpoint = Field(alias="Endpoint")
 
 
 class Fabric(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this fabric.
     """
-    host_soc_root_port: Optional[str] = Field(None, alias="HostSOCRootPort")
+    host_soc_root_port: str | None = Field(None, alias="HostSOCRootPort")
     """
     The assigned port for the SOC PCIe root complex enumeration.
     """
-    first_lane: Optional[int] = Field(None, alias="FirstLane")
+    first_lane: int | None = Field(None, alias="FirstLane")
     """
     The first PCIe lane used for this fabric.
     """
-    width: Optional[int] = Field(None, alias="Width")
+    width: int | None = Field(None, alias="Width")
     """
     The number of PCIe lanes used for this fabric.
     """
-    components: Optional[List[Component1]] = Field(None, alias="Components")
+    components: list[Component1] | None = Field(None, alias="Components")
     """
     Information about PCIe components in a PCIe bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesPCIe(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -911,20 +911,20 @@ class BusesPCIe(BaseModel):
 class BusesPECI(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesQSPI(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -936,31 +936,31 @@ class BusesQSPI(BaseModel):
     """
     The data transfer mode supported by this ESPI bus.
     """
-    controller: Optional[str] = Field(None, alias="Controller")
+    controller: str | None = Field(None, alias="Controller")
     """
     The component that receives interrupt requests and controls this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesSGMII(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesSPI(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -968,7 +968,7 @@ class BusesSPI(BaseModel):
     """
     The maximum clock speed for this SPI bus.
     """
-    alert_usage: Optional[AlertUsage] = Field(None, alias="AlertUsage")
+    alert_usage: AlertUsage | None = Field(None, alias="AlertUsage")
     """
     The manner in which alerts are signaled on the bus.
     """
@@ -976,34 +976,34 @@ class BusesSPI(BaseModel):
     """
     The data transfer mode supported by this ESPI bus.
     """
-    interrupt_request: Optional[str] = Field(None, alias="InterruptRequest")
+    interrupt_request: str | None = Field(None, alias="InterruptRequest")
     """
     Indicates the component to which the IRQ[0] pin is connected.
     """
-    controller: Optional[str] = Field(None, alias="Controller")
+    controller: str | None = Field(None, alias="Controller")
     """
     The component that receives interrupt requests and controls this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesSGPIO(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class Channel4(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     endpoint: Endpoint = Field(alias="Endpoint")
     mux_config: MUXChannelConfig = Field(alias="MUXConfig")
 
@@ -1011,47 +1011,47 @@ class Channel4(BaseModel):
 class MuX3(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    propagation_delay_ns: Optional[int] = Field(None, alias="PropagationDelayNS")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    propagation_delay_ns: int | None = Field(None, alias="PropagationDelayNS")
     """
     The propagation delay for this UART MUX.
     """
-    channels: List[Channel4] = Field(alias="Channels")
+    channels: list[Channel4] = Field(alias="Channels")
     """
     Information about channels in a UART MUX.
     """
-    control: Optional[MUXControl] = Field(None, alias="Control")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    control: MUXControl | None = Field(None, alias="Control")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class Segment4(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    mu_xes: Optional[List[MuX3]] = Field(None, alias="MUXes")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    mu_xes: list[MuX3] | None = Field(None, alias="MUXes")
     """
     Information about MUXes in a UART segment.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
 
 
 class BusesUART(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
-    voltage_tenths_volts: Optional[int] = Field(None, alias="VoltageTenthsVolts")
+    voltage_tenths_volts: int | None = Field(None, alias="VoltageTenthsVolts")
     """
     The voltage needed to drive this UART bus.
     """
     required_power_state: RequiredPowerState = Field(alias="RequiredPowerState")
-    segments: List[Segment4] = Field(alias="Segments")
+    segments: list[Segment4] = Field(alias="Segments")
     """
     Information about UART segments.
     """
@@ -1060,26 +1060,26 @@ class BusesUART(BaseModel):
 class MuX4(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    propagation_delay_ns: Optional[int] = Field(None, alias="PropagationDelayNS")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    propagation_delay_ns: int | None = Field(None, alias="PropagationDelayNS")
     """
     The propagation delay for this MUX.
     """
-    channels: List[Channel4] = Field(alias="Channels")
+    channels: list[Channel4] = Field(alias="Channels")
     """
     Information about channels in this MUX.
     """
-    control: Optional[MUXControl] = Field(None, alias="Control")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    control: MUXControl | None = Field(None, alias="Control")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class Port1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    voltage_tenths_volts: Optional[int] = Field(None, alias="VoltageTenthsVolts")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    voltage_tenths_volts: int | None = Field(None, alias="VoltageTenthsVolts")
     """
     The voltage needed to drive this USB port.
     """
@@ -1089,25 +1089,25 @@ class Port1(BaseModel):
 class Hub1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    ports: List[Port1] = Field(alias="Ports")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    ports: list[Port1] = Field(alias="Ports")
     """
     Information about ports for this USB bus hub.
     """
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description of the intended usage for this hub.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ReferencedBusListItem(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    type: Optional[str] = Field(None, alias="Type")
+    type: str | None = Field(None, alias="Type")
     """
     The type of bus for this reference.
     """
@@ -1115,18 +1115,18 @@ class ReferencedBusListItem(BaseModel):
     """
     The instance of the bus type for this reference.
     """
-    spec_bus_name: Optional[str] = Field(None, alias="SpecBusName")
+    spec_bus_name: str | None = Field(None, alias="SpecBusName")
     """
     The name used in the spec to reference this bus.
     """
-    signals: Optional[List[Signal]] = Field(None, alias="Signals")
+    signals: list[Signal] | None = Field(None, alias="Signals")
     """
     Information about the signals for this referenced bus.
     """
 
 
-class ReferencedBusList(RootModel[List[ReferencedBusListItem]]):
-    root: List[ReferencedBusListItem]
+class ReferencedBusList(RootModel[list[ReferencedBusListItem]]):
+    root: list[ReferencedBusListItem]
     """
     A collection of references to hardware or logical buses as defined in the buses section of this document.
     """
@@ -1135,7 +1135,7 @@ class ReferencedBusList(RootModel[List[ReferencedBusListItem]]):
 class ConnectorsSOCs(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     vendor_name: str = Field(alias="VendorName")
     """
     The name of the vendor of the SOC.
@@ -1148,34 +1148,34 @@ class ConnectorsSOCs(BaseModel):
     """
     The type of the SOC.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     dimm_channels_supported: int = Field(alias="DimmChannelsSupported")
     """
     The number of dimm channels supported by the SOC.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
 
 
 class Slot(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     proximity: Proximity = Field(alias="Proximity")
     """
     The proximity of the memory subsystem slot to its associated SOC.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     associated_soc: str = Field(alias="AssociatedSOC")
     """
     The SOC associated with this memory subsystem slot.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
 
 
 class ConnectorsMemorySubsystem(BaseModel):
@@ -1184,7 +1184,7 @@ class ConnectorsMemorySubsystem(BaseModel):
     """
     The number of channels supported by the memory subsystem.
     """
-    slots_per_channel: Union[int, List[int]] = Field(alias="SlotsPerChannel")
+    slots_per_channel: int | list[int] = Field(alias="SlotsPerChannel")
     """
     The number of slots in each channel supported by the memory subsystem.
     """
@@ -1192,7 +1192,7 @@ class ConnectorsMemorySubsystem(BaseModel):
     """
     The memory technology supported by the memory subsystem.
     """
-    slots: List[Slot] = Field(alias="Slots")
+    slots: list[Slot] = Field(alias="Slots")
     """
     Information about an individual channels slot in the memory subsystem.
     """
@@ -1201,44 +1201,44 @@ class ConnectorsMemorySubsystem(BaseModel):
 class ConnectorsCoolingSubsystem(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     maximum_power_watts: int = Field(alias="MaximumPowerWatts")
     """
     The maximum power for this cooling subsystem.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsDrive(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     drive_type: str = Field(alias="DriveType")
     """
     The specific connector type for this drive, such as EDSFF or M.2.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsMxio(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    soc_socket_association: Optional[str] = Field(None, alias="SOCSocketAssociation")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    soc_socket_association: str | None = Field(None, alias="SOCSocketAssociation")
     """
     The SOC Socket to which this MXIO is connected.
     """
-    common_clocking_support: Optional[bool] = Field(None, alias="CommonClockingSupport")
+    common_clocking_support: bool | None = Field(None, alias="CommonClockingSupport")
     """
     Indicates whether the MXIO supports common clocking.
     """
@@ -1246,128 +1246,128 @@ class ConnectorsMxio(BaseModel):
     """
     The type of connector for this MXIO.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    flex_i_os: List[FlexIO] = Field(alias="FlexIOs")
+    flex_i_os: list[FlexIO] = Field(alias="FlexIOs")
     """
     The FlexIOs used by the MXIO.
     """
-    signals: Optional[List[Signal]] = Field(None, alias="Signals")
+    signals: list[Signal] | None = Field(None, alias="Signals")
     """
     Information about the signals for this MXIO.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsMpic(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     connector_type: str = Field(alias="ConnectorType")
     """
     The type of connector for this MPIC.
     """
-    adjusted_maximum_actual_power_supported_watts: Optional[int] = Field(
+    adjusted_maximum_actual_power_supported_watts: int | None = Field(
         None, alias="AdjustedMaximumActualPowerSupportedWatts"
     )
     """
     The adjusted maximum actual power supported for this MPIC.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    sidebands: List[Sideband] = Field(alias="Sidebands")
+    sidebands: list[Sideband] = Field(alias="Sidebands")
     """
     The sidebands used by the MPIC.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsPowerSupply(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     connector_type: str = Field(alias="ConnectorType")
     """
     The type of connector for this power supply.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     hot_plug_supported: bool = Field(alias="HotPlugSupported")
     """
     Indicates whether the power supply supports hot plugging.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsOCPMezzanineSlot(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     version: str = Field(alias="Version")
     """
     The version of the OCP NIC specification with which this OCP mezzanine expansion slot complies.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     form_factor: FormFactor = Field(alias="FormFactor")
     """
     The form factor for this OCP mezzanine expansion slot.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    paired_slot_for_double_wide: Optional[str] = Field(None, alias="PairedSlotForDoubleWide")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    paired_slot_for_double_wide: str | None = Field(None, alias="PairedSlotForDoubleWide")
     """
     The slot with which this slot is paired for use as a double-wide connector in the DSFF or TDSFF form factor.
     """
-    signals: Optional[List[Signal]] = Field(None, alias="Signals")
+    signals: list[Signal] | None = Field(None, alias="Signals")
     """
     Information about the signals for this OCP Mezzanine slot.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsControlPanel(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    primary: Optional[bool] = Field(None, alias="Primary")
+    primary: bool | None = Field(None, alias="Primary")
     """
     Indicates whether this is the primary control panel.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsPCIeCEM(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     connector_type: str = Field(alias="ConnectorType")
     """
     The type for this CEM slot.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    signals: Optional[List[Signal]] = Field(None, alias="Signals")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    signals: list[Signal] | None = Field(None, alias="Signals")
     """
     Information about the signals for this PCIe CEM slot.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsPowerDistributionBoardManagement(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     management_type: str = Field(alias="ManagementType")
     """
     The type of power distribution management board connector, such as type 1 or type 2.
@@ -1380,32 +1380,32 @@ class ConnectorsPowerDistributionBoardManagement(BaseModel):
     """
     The intended linkage for this power distribution management board connector.
     """
-    sidebands: List[Sideband] = Field(alias="Sidebands")
+    sidebands: list[Sideband] = Field(alias="Sidebands")
     """
     The sidebands used by the PDB.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsRealTimeClockBattery(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
 
 
 class ConnectorsFan(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     pins: int = Field(alias="Pins")
     """
     The number of pins for the connector for this fan.
@@ -1418,22 +1418,22 @@ class ConnectorsFan(BaseModel):
     """
     The type of connector for this fan.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     hot_plug_supported: bool = Field(alias="HotPlugSupported")
     """
     Indicates whether this fan supports hot plugging.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsSCI(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
     revision: str = Field(alias="Revision")
     """
     The revision of this SCI.
@@ -1446,29 +1446,29 @@ class ConnectorsSCI(BaseModel):
     """
     The number of nodes supported by this SCI.
     """
-    backup_battery_voltage_measurement_capable: Optional[bool] = Field(
+    backup_battery_voltage_measurement_capable: bool | None = Field(
         None, alias="BackupBatteryVoltageMeasurementCapable"
     )
     """
     Indicates whether this SCI supports measurement of the backup battery voltage.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    signals: Optional[List[Signal]] = Field(None, alias="Signals")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    signals: list[Signal] | None = Field(None, alias="Signals")
     """
     Information about the signals for this SCI.
     """
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsIntrusionDetection(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     connector_type: str = Field(alias="ConnectorType")
     """
@@ -1478,17 +1478,17 @@ class ConnectorsIntrusionDetection(BaseModel):
     """
     The netname of the signal that provides the state of the intrusion detection sensor.
     """
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
 
 
 class ConnectorsPhysicalUSB(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     connector_type: ConnectorType = Field(alias="ConnectorType")
     """
@@ -1498,69 +1498,69 @@ class ConnectorsPhysicalUSB(BaseModel):
     """
     The endpoint location of this physical USB port.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class ConnectorsOEM(BaseModel):
     model_config = ConfigDict(extra="allow", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
     connector_type: str = Field(alias="ConnectorType")
     """
     The type of this OEM connector.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    physical_location: Optional[PhysicalLocation] = Field(None, alias="PhysicalLocation")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
 class Device(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    type: Optional[str] = Field(None, alias="Type")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    type: str | None = Field(None, alias="Type")
     """
     The type of the device.
     """
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
-    active: Optional[bool] = Field(None, alias="Active")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
+    active: bool | None = Field(None, alias="Active")
     """
     Indicates whether this is an active programmable device.
     """
-    primary: Optional[bool] = Field(None, alias="Primary")
+    primary: bool | None = Field(None, alias="Primary")
     """
     Indicates whether this is the primary active programmable device.
     """
-    data_file: Optional[str] = Field(None, alias="DataFile")
+    data_file: str | None = Field(None, alias="DataFile")
     """
     The data file with JSON information specific to this device.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    capacity_bytes: Optional[float] = Field(None, alias="CapacityBytes")
+    capacity_bytes: float | None = Field(None, alias="CapacityBytes")
     """
     The storage capacity for this device.
     """
-    physical_signals: Optional[List[Signal]] = Field(None, alias="PhysicalSignals")
+    physical_signals: list[Signal] | None = Field(None, alias="PhysicalSignals")
     """
     Information about the physical signals for this device.
     """
-    connected_buses: Optional[ReferencedBusList] = Field(None, alias="ConnectedBuses")
-    oem: Optional[Dict[str, Any]] = Field(None, alias="OEM")
+    connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
+    oem: dict[str, Any] | None = Field(None, alias="OEM")
     """
     Provides additional OEM-specific information for a device.
     """
 
 
-class Devices(RootModel[List[Device]]):
-    root: List[Device]
+class Devices(RootModel[list[Device]]):
+    root: list[Device]
     """
     Information about active and passive hardware devices
     """
@@ -1569,33 +1569,33 @@ class Devices(RootModel[List[Device]]):
 class Bridge(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
     version: str = Field(alias="Version")
     """
     The version for this bridge.
     """
-    silkscreen_name: Optional[SilkscreenName] = Field(None, alias="SilkscreenName")
+    silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    linked_buses: Optional[ReferencedBusList] = Field(None, alias="LinkedBuses")
+    linked_buses: ReferencedBusList | None = Field(None, alias="LinkedBuses")
 
 
 class Segment(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this segment.
     """
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
-    mu_xes: Optional[List[MuX]] = Field(None, alias="MUXes")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
+    mu_xes: list[MuX] | None = Field(None, alias="MUXes")
     """
     Information about I2C MUXes in this I2C segment.
     """
-    bridges: Optional[List[Bridge]] = Field(None, alias="Bridges")
+    bridges: list[Bridge] | None = Field(None, alias="Bridges")
     """
     Information about I2C bridges in this I2C segment.
     """
@@ -1604,8 +1604,8 @@ class Segment(BaseModel):
 class BusesI2C(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -1618,11 +1618,11 @@ class BusesI2C(BaseModel):
     """
     The clock frequency for this bus.
     """
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description of the intended usage for this bus.
     """
-    segments: List[Segment] = Field(alias="Segments")
+    segments: list[Segment] = Field(alias="Segments")
     """
     Information about I2C segments.
     """
@@ -1631,31 +1631,31 @@ class BusesI2C(BaseModel):
 class Bridge1(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    models: Optional[Models] = Field(None, alias="Models")
-    manufacturers: Optional[Manufacturers] = Field(None, alias="Manufacturers")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    models: Models | None = Field(None, alias="Models")
+    manufacturers: Manufacturers | None = Field(None, alias="Manufacturers")
     version: str = Field(alias="Version")
     """
     The version of USB supported by this USB bridge.
     """
-    linked_buses: Optional[ReferencedBusList] = Field(None, alias="LinkedBuses")
+    linked_buses: ReferencedBusList | None = Field(None, alias="LinkedBuses")
 
 
 class Segment5(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    connected_devices: Optional[ConnectedDeviceList] = Field(None, alias="ConnectedDevices")
-    connectors: Optional[AttachedConnectorList] = Field(None, alias="Connectors")
-    mu_xes: Optional[List[MuX4]] = Field(None, alias="MUXes")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
+    connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
+    mu_xes: list[MuX4] | None = Field(None, alias="MUXes")
     """
     Information about muxes for this USB bus.
     """
-    hubs: Optional[List[Hub1]] = Field(None, alias="Hubs")
+    hubs: list[Hub1] | None = Field(None, alias="Hubs")
     """
     Information about hubs for this USB bus segment.
     """
-    bridges: Optional[List[Bridge1]] = Field(None, alias="Bridges")
+    bridges: list[Bridge1] | None = Field(None, alias="Bridges")
     """
     Information about bridges for this USB bus segment.
     """
@@ -1664,8 +1664,8 @@ class Segment5(BaseModel):
 class BusesUSB(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
-    alias: Optional[ComponentAlias] = Field(None, alias="Alias")
-    netlist_name: Optional[str] = Field(None, alias="NetlistName")
+    alias: ComponentAlias | None = Field(None, alias="Alias")
+    netlist_name: str | None = Field(None, alias="NetlistName")
     """
     The name used in the netlist for this bus.
     """
@@ -1682,11 +1682,11 @@ class BusesUSB(BaseModel):
     The voltage needed to drive this USB bus.
     """
     required_power_state: RequiredPowerState = Field(alias="RequiredPowerState")
-    description: Optional[str] = Field(None, alias="Description")
+    description: str | None = Field(None, alias="Description")
     """
     A description of the intended usage for this bus.
     """
-    segments: List[Segment5] = Field(alias="Segments")
+    segments: list[Segment5] = Field(alias="Segments")
     """
     Information about segments for this USB bus.
     """
@@ -1694,28 +1694,26 @@ class BusesUSB(BaseModel):
 
 class Connectors(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    so_cs: List[ConnectorsSOCs] = Field(alias="SOCs")
-    memory_subsystems: List[ConnectorsMemorySubsystem] = Field(alias="MemorySubsystems")
-    composites: List[ConnectorsComposite] = Field(alias="Composites")
-    cooling_subsystems: List[ConnectorsCoolingSubsystem] = Field(alias="CoolingSubsystems")
-    drives: Optional[List[ConnectorsDrive]] = Field(None, alias="Drives")
-    mxios: List[ConnectorsMxio] = Field(alias="Mxios")
-    mpics: List[ConnectorsMpic] = Field(alias="Mpics")
-    ocp_mezzanine_slots: List[ConnectorsOCPMezzanineSlot] = Field(alias="OCPMezzanineSlots")
-    power_supplies: Optional[List[ConnectorsPowerSupply]] = Field(None, alias="PowerSupplies")
-    control_panels: List[ConnectorsControlPanel] = Field(alias="ControlPanels")
-    pc_ie_ce_ms: Optional[List[ConnectorsPCIeCEM]] = Field(None, alias="PCIe_CEMs")
-    power_distribution_board_managements: Optional[List[ConnectorsPowerDistributionBoardManagement]] = Field(
+    so_cs: list[ConnectorsSOCs] | None = Field(None, alias="SOCs")
+    memory_subsystems: list[ConnectorsMemorySubsystem] | None = Field(None, alias="MemorySubsystems")
+    composites: list[ConnectorsComposite] | None = Field(None, alias="Composites")
+    cooling_subsystems: list[ConnectorsCoolingSubsystem] | None = Field(None, alias="CoolingSubsystems")
+    drives: list[ConnectorsDrive] | None = Field(None, alias="Drives")
+    mxios: list[ConnectorsMxio] | None = Field(None, alias="Mxios")
+    mpics: list[ConnectorsMpic] | None = Field(None, alias="Mpics")
+    ocp_mezzanine_slots: list[ConnectorsOCPMezzanineSlot] | None = Field(None, alias="OCPMezzanineSlots")
+    power_supplies: list[ConnectorsPowerSupply] | None = Field(None, alias="PowerSupplies")
+    control_panels: list[ConnectorsControlPanel] | None = Field(None, alias="ControlPanels")
+    pc_ie_ce_ms: list[ConnectorsPCIeCEM] | None = Field(None, alias="PCIe_CEMs")
+    power_distribution_board_managements: list[ConnectorsPowerDistributionBoardManagement] | None = Field(
         None, alias="PowerDistributionBoardManagements"
     )
-    real_time_clock_batteries: Optional[List[ConnectorsRealTimeClockBattery]] = Field(
-        None, alias="RealTimeClockBatteries"
-    )
-    fans: Optional[List[ConnectorsFan]] = Field(None, alias="Fans")
-    sc_is: List[ConnectorsSCI] = Field(alias="SCIs")
-    intrusion_detection: List[ConnectorsIntrusionDetection] = Field(alias="IntrusionDetection")
-    physical_us_bs: List[ConnectorsPhysicalUSB] = Field(alias="PhysicalUSBs")
-    oem: Optional[List[ConnectorsOEM]] = Field(None, alias="OEM")
+    real_time_clock_batteries: list[ConnectorsRealTimeClockBattery] | None = Field(None, alias="RealTimeClockBatteries")
+    fans: list[ConnectorsFan] | None = Field(None, alias="Fans")
+    sc_is: list[ConnectorsSCI] | None = Field(None, alias="SCIs")
+    intrusion_detection: list[ConnectorsIntrusionDetection] | None = Field(None, alias="IntrusionDetection")
+    physical_us_bs: list[ConnectorsPhysicalUSB] | None = Field(None, alias="PhysicalUSBs")
+    oem: list[ConnectorsOEM] | None = Field(None, alias="OEM")
     """
     Provides information for an OEM-specific connector.
     """
@@ -1723,23 +1721,23 @@ class Connectors(BaseModel):
 
 class Buses(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    display_port: Optional[List[BusesDisplayPort]] = Field(None, alias="DisplayPort")
-    espi: Optional[List[BusesESPI]] = Field(None, alias="ESPI")
-    i2_c: Optional[List[BusesI2C]] = Field(None, alias="I2C")
-    i3_c: Optional[List[BusesI3C]] = Field(None, alias="I3C")
-    jtag: Optional[List[BusesJTAG]] = Field(None, alias="JTAG")
-    ltpi: Optional[List[BusesLTPI]] = Field(None, alias="LTPI")
-    mpesti: Optional[List[BusesMPESTI]] = Field(None, alias="MPESTI")
-    ncsi_rbt: Optional[List[BusesNCSIRBT]] = Field(None, alias="NCSI_RBT")
-    pc_ie: Optional[List[BusesPCIe]] = Field(None, alias="PCIe")
-    peci: Optional[List[BusesPECI]] = Field(None, alias="PECI")
-    qspi: Optional[List[BusesQSPI]] = Field(None, alias="QSPI")
-    sgmii: Optional[List[BusesSGMII]] = Field(None, alias="SGMII")
-    spi: Optional[List[BusesSPI]] = Field(None, alias="SPI")
-    sgpio: Optional[List[BusesSGPIO]] = Field(None, alias="SGPIO")
-    uart: Optional[List[BusesUART]] = Field(None, alias="UART")
-    usb: Optional[List[BusesUSB]] = Field(None, alias="USB")
-    oem: Optional[List[Dict[str, Any]]] = Field(None, alias="OEM")
+    display_port: list[BusesDisplayPort] | None = Field(None, alias="DisplayPort")
+    espi: list[BusesESPI] | None = Field(None, alias="ESPI")
+    i2_c: list[BusesI2C] | None = Field(None, alias="I2C")
+    i3_c: list[BusesI3C] | None = Field(None, alias="I3C")
+    jtag: list[BusesJTAG] | None = Field(None, alias="JTAG")
+    ltpi: list[BusesLTPI] | None = Field(None, alias="LTPI")
+    mpesti: list[BusesMPESTI] | None = Field(None, alias="MPESTI")
+    ncsi_rbt: list[BusesNCSIRBT] | None = Field(None, alias="NCSI_RBT")
+    pc_ie: list[BusesPCIe] | None = Field(None, alias="PCIe")
+    peci: list[BusesPECI] | None = Field(None, alias="PECI")
+    qspi: list[BusesQSPI] | None = Field(None, alias="QSPI")
+    sgmii: list[BusesSGMII] | None = Field(None, alias="SGMII")
+    spi: list[BusesSPI] | None = Field(None, alias="SPI")
+    sgpio: list[BusesSGPIO] | None = Field(None, alias="SGPIO")
+    uart: list[BusesUART] | None = Field(None, alias="UART")
+    usb: list[BusesUSB] | None = Field(None, alias="USB")
+    oem: list[dict[str, Any]] | None = Field(None, alias="OEM")
     """
     Provides information for an OEM-specific bus.
     """
@@ -1755,7 +1753,7 @@ class Component(BaseModel):
     """
     The subtype of hardware that this component represents, such as DNO, FLW, or SDNO for an HPM.
     """
-    vendor_id: constr(pattern=r"^([a-fA-F0-9]){4}$") = Field(alias="VendorID")
+    vendor_id: Annotated[str, StringConstraints(pattern=r"^([a-fA-F0-9]){4}$")] = Field(alias="VendorID")
     """
     The vendor ID assigned by the manufacturer for this component.
     """
@@ -1763,11 +1761,11 @@ class Component(BaseModel):
     """
     A unique ID assigned by the manufacturer for this component, such as a PCIe DeviceID.
     """
-    power_policy: Optional[PowerPolicy] = Field(None, alias="PowerPolicy")
+    power_policy: PowerPolicy | None = Field(None, alias="PowerPolicy")
     """
     The minimum system power state in which the component can be powered for full operation.
     """
-    maximum_power_watts: Optional[int] = Field(None, alias="MaximumPowerWatts")
+    maximum_power_watts: int | None = Field(None, alias="MaximumPowerWatts")
     """
     The maximum wattage that the component can draw when fully powered.
     """
@@ -1778,7 +1776,7 @@ class Component(BaseModel):
 
 class HardwareComponent(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    field_comment: Optional[str] = Field(None, alias="_comment")
+    field_comment: str | None = Field(None, alias="_comment")
     """
     A general comment about a data file
     """

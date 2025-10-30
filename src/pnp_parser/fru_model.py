@@ -359,11 +359,11 @@ class ConnectorsComposite(BaseModel):
     """
     silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    mpi_cs: list[str] = Field(alias="MPICs")
+    mpics: list[str] = Field(alias="MPICs")
     """
     The MPICs used by the composite.
     """
-    mxi_os: list[str] = Field(alias="MXIOs")
+    mxios: list[str] = Field(alias="MXIOs")
     """
     The MXIOs used by the composite.
     """
@@ -603,7 +603,7 @@ class Segment1(BaseModel):
     """
     Information about I3C hubs.
     """
-    mu_xes: list[MuX1] | None = Field(None, alias="MUXes")
+    muxes: list[MuX1] | None = Field(None, alias="MUXes")
     """
     Information about I3C MUXes.
     """
@@ -664,7 +664,7 @@ class Segment2(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
-    mu_xes: list[MuX2] | None = Field(None, alias="MUXes")
+    muxes: list[MuX2] | None = Field(None, alias="MUXes")
     """
     Information about MUXes in a JTAG segment.
     """
@@ -1030,7 +1030,7 @@ class Segment4(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
-    mu_xes: list[MuX3] | None = Field(None, alias="MUXes")
+    muxes: list[MuX3] | None = Field(None, alias="MUXes")
     """
     Information about MUXes in a UART segment.
     """
@@ -1591,7 +1591,7 @@ class Segment(BaseModel):
     """
     connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
     connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
-    mu_xes: list[MuX] | None = Field(None, alias="MUXes")
+    muxes: list[MuX] | None = Field(None, alias="MUXes")
     """
     Information about I2C MUXes in this I2C segment.
     """
@@ -1647,7 +1647,7 @@ class Segment5(BaseModel):
     alias: ComponentAlias | None = Field(None, alias="Alias")
     connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
     connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
-    mu_xes: list[MuX4] | None = Field(None, alias="MUXes")
+    muxes: list[MuX4] | None = Field(None, alias="MUXes")
     """
     Information about muxes for this USB bus.
     """
@@ -1694,7 +1694,7 @@ class BusesUSB(BaseModel):
 
 class Connectors(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    so_cs: list[ConnectorsSOCs] | None = Field(None, alias="SOCs")
+    socs: list[ConnectorsSOCs] | None = Field(None, alias="SOCs")
     memory_subsystems: list[ConnectorsMemorySubsystem] | None = Field(None, alias="MemorySubsystems")
     composites: list[ConnectorsComposite] | None = Field(None, alias="Composites")
     cooling_subsystems: list[ConnectorsCoolingSubsystem] | None = Field(None, alias="CoolingSubsystems")
@@ -1704,13 +1704,13 @@ class Connectors(BaseModel):
     ocp_mezzanine_slots: list[ConnectorsOCPMezzanineSlot] | None = Field(None, alias="OCPMezzanineSlots")
     power_supplies: list[ConnectorsPowerSupply] | None = Field(None, alias="PowerSupplies")
     control_panels: list[ConnectorsControlPanel] | None = Field(None, alias="ControlPanels")
-    pc_ie_ce_ms: list[ConnectorsPCIeCEM] | None = Field(None, alias="PCIe_CEMs")
+    pcie_cems: list[ConnectorsPCIeCEM] | None = Field(None, alias="PCIe_CEMs")
     power_distribution_board_managements: list[ConnectorsPowerDistributionBoardManagement] | None = Field(
         None, alias="PowerDistributionBoardManagements"
     )
     real_time_clock_batteries: list[ConnectorsRealTimeClockBattery] | None = Field(None, alias="RealTimeClockBatteries")
     fans: list[ConnectorsFan] | None = Field(None, alias="Fans")
-    sc_is: list[ConnectorsSCI] | None = Field(None, alias="SCIs")
+    scis: list[ConnectorsSCI] | None = Field(None, alias="SCIs")
     intrusion_detection: list[ConnectorsIntrusionDetection] | None = Field(None, alias="IntrusionDetection")
     physical_us_bs: list[ConnectorsPhysicalUSB] | None = Field(None, alias="PhysicalUSBs")
     oem: list[ConnectorsOEM] | None = Field(None, alias="OEM")
@@ -1721,15 +1721,15 @@ class Connectors(BaseModel):
 
 class Buses(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
-    display_port: list[BusesDisplayPort] | None = Field(None, alias="DisplayPort")
+    displayport: list[BusesDisplayPort] | None = Field(None, alias="DisplayPort")
     espi: list[BusesESPI] | None = Field(None, alias="ESPI")
-    i2_c: list[BusesI2C] | None = Field(None, alias="I2C")
-    i3_c: list[BusesI3C] | None = Field(None, alias="I3C")
+    i2c: list[BusesI2C] | None = Field(None, alias="I2C")
+    i3c: list[BusesI3C] | None = Field(None, alias="I3C")
     jtag: list[BusesJTAG] | None = Field(None, alias="JTAG")
     ltpi: list[BusesLTPI] | None = Field(None, alias="LTPI")
     mpesti: list[BusesMPESTI] | None = Field(None, alias="MPESTI")
     ncsi_rbt: list[BusesNCSIRBT] | None = Field(None, alias="NCSI_RBT")
-    pc_ie: list[BusesPCIe] | None = Field(None, alias="PCIe")
+    pcie: list[BusesPCIe] | None = Field(None, alias="PCIe")
     peci: list[BusesPECI] | None = Field(None, alias="PECI")
     qspi: list[BusesQSPI] | None = Field(None, alias="QSPI")
     sgmii: list[BusesSGMII] | None = Field(None, alias="SGMII")

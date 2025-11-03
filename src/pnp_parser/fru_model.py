@@ -410,7 +410,7 @@ class BusesESPI(BaseModel):
     """
     The name used in the netlist for this bus.
     """
-    max_clock_speed_m_hz: int = Field(alias="MaxClockSpeedMHz")
+    max_clock_speed_mhz: int = Field(alias="MaxClockSpeedMHz")
     """
     The maximum clock speed for this ESPI bus.
     """
@@ -628,7 +628,7 @@ class BusesI3C(BaseModel):
     The voltage needed to drive this I3C bus.
     """
     required_power_state: RequiredPowerState = Field(alias="RequiredPowerState")
-    frequency_k_hz: int = Field(alias="FrequencyKHz")
+    frequency_khz: int = Field(alias="FrequencyKHz")
     """
     The frequency at which this I3C bus shall operate.
     """
@@ -928,7 +928,7 @@ class BusesQSPI(BaseModel):
     """
     The name used in the netlist for this bus.
     """
-    max_clock_speed_m_hz: int = Field(alias="MaxClockSpeedMHz")
+    max_clock_speed_mhz: int = Field(alias="MaxClockSpeedMHz")
     """
     The maximum clock speed for this QSPI bus.
     """
@@ -964,7 +964,7 @@ class BusesSPI(BaseModel):
     """
     The name used in the netlist for this bus.
     """
-    max_clock_speed_m_hz: int = Field(alias="MaxClockSpeedMHz")
+    max_clock_speed_mhz: int = Field(alias="MaxClockSpeedMHz")
     """
     The maximum clock speed for this SPI bus.
     """
@@ -1249,7 +1249,7 @@ class ConnectorsMxio(BaseModel):
     connected_buses: ReferencedBusList | None = Field(None, alias="ConnectedBuses")
     silkscreen_name: SilkscreenName | None = Field(None, alias="SilkscreenName")
     reference_designator: ReferenceDesignator = Field(alias="ReferenceDesignator")
-    flex_i_os: list[FlexIO] = Field(alias="FlexIOs")
+    flex_ios: list[FlexIO] = Field(alias="FlexIOs")
     """
     The FlexIOs used by the MXIO.
     """
@@ -1614,7 +1614,7 @@ class BusesI2C(BaseModel):
     The voltage needed to drive this bus.
     """
     required_power_state: RequiredPowerState = Field(alias="RequiredPowerState")
-    frequency_k_hz: int = Field(alias="FrequencyKHz")
+    frequency_khz: int = Field(alias="FrequencyKHz")
     """
     The clock frequency for this bus.
     """
@@ -1712,7 +1712,7 @@ class Connectors(BaseModel):
     fans: list[ConnectorsFan] | None = Field(None, alias="Fans")
     scis: list[ConnectorsSCI] | None = Field(None, alias="SCIs")
     intrusion_detection: list[ConnectorsIntrusionDetection] | None = Field(None, alias="IntrusionDetection")
-    physical_us_bs: list[ConnectorsPhysicalUSB] | None = Field(None, alias="PhysicalUSBs")
+    physical_usbs: list[ConnectorsPhysicalUSB] | None = Field(None, alias="PhysicalUSBs")
     oem: list[ConnectorsOEM] | None = Field(None, alias="OEM")
     """
     Provides information for an OEM-specific connector.

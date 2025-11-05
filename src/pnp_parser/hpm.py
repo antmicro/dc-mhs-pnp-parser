@@ -3,7 +3,7 @@ from typing import Any
 
 from pipeline_manager.specification_builder import SpecificationBuilder
 
-from .fru_model import HardwareComponent, Connectors
+from .fru_model import HardwareComponent, Connectors, Devices, Device
 
 
 connector_categories = {
@@ -92,6 +92,41 @@ def add_connector_nodes(
             add_connector_node(connector, category, nodes, buses, spec_builder)
 
 
+def add_device_nodes(
+    devices: Devices,
+    nodes: list[str],
+    buses: dict[str, list[tuple[str, str]]],
+    spec_builder: SpecificationBuilder,
+) -> None:
+    for device in devices.root:
+        node_name = device.identifier.root
+
+        if not device.type:
+            pass
+
+        spec_builder.add_node_type(name=node_name, category=f"Devices/{device.type}")
+
+        for connected_bus in device.connected_buses.root:
+            spec_builder.add_node_type_interface(
+                name=node_name, interfacename=connected_bus.identifier, interfacetype=connected_bus.type
+            )
+
+        if device.manufacturers.root:
+            spec_builder.add_node_type_property(
+                name=node_name,
+                propname="Vendor",
+                proptype="constant",
+                default=device.manufacturers.root[0],
+            )
+
+        if device.models.root:
+            spec_builder.add_node_type_property(
+                name=node_name, propname="Model", proptype="constant", default=device.models.root[0]
+            )
+
+        nodes.append(node_name)
+
+
 def add_hpm_nodes_to_spec(
     hpm: HardwareComponent,
     nodes: list[str],
@@ -100,3 +135,6 @@ def add_hpm_nodes_to_spec(
 ) -> None:
     connectors = hpm.component.connectors
     add_connector_nodes(connectors, nodes, buses, specification_builder)
+
+    devices = hpm.component.devices
+    add_device_nodes(devices, nodes, buses, specification_builder)

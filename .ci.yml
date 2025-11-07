@@ -11,18 +11,16 @@ build:
     - pip install .
   script:
     - source .venv/bin/activate
-    - wget --no-check-certificate "https://drive.google.com/uc?id=1tmS8xSTnhWWG5Nhqu1-Ue9Px9GFVVwO6&export=download"
-    - mv "uc?id=1tmS8xSTnhWWG5Nhqu1-Ue9Px9GFVVwO6&export=download" Release_0_3_0.zip
-    - unzip Release_0_3_0.zip
-    - mv Release_0_3_0/\ hpm-fru-mockup\ v0.5.2.json Release_0_3_0/hpm-fru-mockup-v0.5.2.json
-    - pnp-parser Release_0_3_0/hpm-fru-mockup-v0.5.2.json hpm-fru-mockup-v0.5.2-spec.json hpm-fru-mockup-v0.5.2-dataflow.json
-    - python3 src/graph_aligner/graph_aligner.py write position.json hpm-fru-mockup-v0.5.2-dataflow.json
+    - wget -O Release_0_5_0.zip "https://drive.google.com/uc?id=1HaQbhgrJ--7bkkTC8bfA2pGSGGwdEeJm&export=download"
+    - unzip Release_0_5_0.zip
+    - pnp-parser "Release_0_5_0/JSON Files/Mockups/HPM/hpm-fru-mockup-type1-hpm-example-v0.6.8.json" hpm-fru-mockup-v0.6.8-spec.json hpm-fru-mockup-v0.6.8-dataflow.json
+    # - python3 src/graph_aligner/graph_aligner.py write position.json hpm-fru-mockup-v0.6.8-dataflow.json
   artifacts:
     expire_in: 4 week
     when: always
     paths:
-      - hpm-fru-mockup-v0.5.2-spec.json
-      - hpm-fru-mockup-v0.5.2-dataflow.json
+      - hpm-fru-mockup-v0.6.8-spec.json
+      - hpm-fru-mockup-v0.6.8-dataflow.json
 
 deploy:
   stage: deploy
@@ -31,7 +29,7 @@ deploy:
   variables:
     GIT_STRATEGY: none
   script:
-    - tar cf $CI_DOCS_ARCHIVE hpm-fru-mockup-v0.5.2-*.json
+    - tar cf $CI_DOCS_ARCHIVE hpm-fru-mockup-v0.6.8-*.json
   artifacts:
     paths:
       - $CI_DOCS_ARCHIVE

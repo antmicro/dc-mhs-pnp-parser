@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
 
-SPECIFICATION_VERSION = "20240723.13"
+SPECIFICATION_VERSION = "20250623.14"
 specification_builder = SpecificationBuilder(spec_version=SPECIFICATION_VERSION)
 
 

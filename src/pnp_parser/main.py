@@ -1,4 +1,5 @@
 from typing import Iterable
+from pipeline_manager.dataflow_builder.entities import Node
 import typer
 import json
 
@@ -6,13 +7,12 @@ from pathlib import Path
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pipeline_manager.frontend_builder import build_prepare
 
-from pnp_parser.hpm import add_hpm_nodes_to_spec
+from pnp_parser.hpm import add_hpm_graph_connections, add_hpm_nodes_to_spec
 
 from pipeline_manager.dataflow_builder.dataflow_builder import GraphBuilder, DataflowGraph
 
 from .fru_model import HardwareComponent
 from dataclasses import dataclass
-
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
 
@@ -43,14 +43,18 @@ def create_spec(hpm: HardwareComponent, workspace: Path) -> FruSpec:
 
 
 def create_graph(
-    graph_builder: GraphBuilder, name: str, graph_nodes_names: Iterable[str], nodes: dict, subgraph: bool = False
+    graph_builder: GraphBuilder,
+    name: str,
+    graph_nodes_names: Iterable[str],
+    graph_nodes: dict[str, Node],
+    subgraph: bool = False,
 ) -> DataflowGraph:
     graph = graph_builder.create_graph()
     graph.name = name
 
     for node_name in graph_nodes_names:
         new_node = graph.create_node(name=node_name)
-        nodes[node_name] = new_node
+        graph_nodes[node_name] = new_node
 
     return graph
 
@@ -74,10 +78,11 @@ def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
         specification=fru_spec.spec, specification_version=specification_builder.version, workspace_directory=workspace
     )
 
-    top_graph_nodes: dict = {}
+    top_graph_nodes: dict[str, Node] = {}
 
     print("Creating HPM graph..")
     hpm_graph = create_graph(graph_builder, "Top Graph", set(fru_spec.hpm_nodes), top_graph_nodes)
+    add_hpm_graph_connections(hpm, hpm_graph, top_graph_nodes)
 
     print("Validating specification..")
     spec = specification_builder.create_and_validate_spec(

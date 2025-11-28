@@ -30,7 +30,7 @@ class FruSpec:
 def create_spec(hpm: HardwareComponent, workspace: Path) -> FruSpec:
     specification_builder.metadata_add_param(paramname="connectionStyle", paramvalue="orthogonal")
     specification_builder.metadata_add_param(paramname="twoColumn", paramvalue=True)
-    specification_builder.metadata_add_param(paramname="layout", paramvalue="CytoscapeEngine - grid")
+    specification_builder.metadata_add_param(paramname="layout", paramvalue="CytoscapeEngine - dagre-longest-path")
 
     hpm_nodes: list[str] = []
     hpm_buses: dict[str, list[tuple[str, str]]] = {}

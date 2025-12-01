@@ -7,7 +7,19 @@ from pipeline_manager.dataflow_builder.entities import Interface, Node
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pydantic import BaseModel
 
-from .fru_model import BusesI2C, HardwareComponent, Connectors, Devices, MuX, Segment, Slot
+from .fru_model import (
+    BusesI2C,
+    BusesI3C,
+    HardwareComponent,
+    Connectors,
+    Devices,
+    Hub,
+    MuX,
+    MuX1,
+    Segment,
+    Segment1,
+    Slot,
+)
 
 
 connector_categories = {
@@ -162,6 +174,24 @@ def add_device_nodes(
         nodes.append(node_name)
 
 
+def add_i2c_segment(
+    i2c_bus_name: str,
+    segment: Segment,
+    nodes: list[str],
+    spec_builder: SpecificationBuilder,
+) -> None:
+    segment_name = segment.identifier.root
+    spec_builder.add_node_type(name=segment_name, category=f"I2C/Segments/{segment_name}")
+
+    set_node_attributes(segment, segment_name, spec_builder)
+
+    spec_builder.add_node_type_interface(
+        name=segment_name, interfacename=segment_name, interfacetype="i2c", side="right", maxcount=-1
+    )
+
+    nodes.append(segment_name)
+
+
 def add_i2c_mux(
     mux: MuX,
     input_segment_name: str,
@@ -169,7 +199,7 @@ def add_i2c_mux(
     spec_builder: SpecificationBuilder,
 ) -> None:
     mux_name = mux.identifier.root
-    spec_builder.add_node_type(name=mux_name, category=f"MUXes/{mux_name}")
+    spec_builder.add_node_type(name=mux_name, category=f"I2C/MUXes/{mux_name}")
 
     set_node_attributes(mux, mux_name, spec_builder)
 
@@ -195,17 +225,125 @@ def add_i2c_mux(
     nodes.append(mux_name)
 
 
-def add_i2c_muxes(
+def add_i2c_nodes(
     i2c_buses: list[BusesI2C],
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
     for bus in i2c_buses:
+        i2c_bus_name = bus.identifier.root
+
         for segment in bus.segments:
             input_segment_name = segment.identifier.root
 
+            add_i2c_segment(i2c_bus_name, segment, nodes, spec_builder)
+
             for mux in segment.muxes or []:
                 add_i2c_mux(mux, input_segment_name, nodes, spec_builder)
+
+
+def add_i3c_segment(
+    i3c_bus_name: str,
+    segment: Segment1,
+    nodes: list[str],
+    spec_builder: SpecificationBuilder,
+) -> None:
+    segment_name = segment.identifier.root
+    spec_builder.add_node_type(name=segment_name, category=f"I3C/Segments/{segment_name}")
+
+    set_node_attributes(segment, segment_name, spec_builder)
+
+    spec_builder.add_node_type_interface(
+        name=segment_name, interfacename=segment_name, interfacetype="i3c", side="right", maxcount=-1
+    )
+
+    nodes.append(segment_name)
+
+
+def add_i3c_hub(
+    hub: Hub,
+    input_segment_name: str,
+    nodes: list[str],
+    spec_builder: SpecificationBuilder,
+) -> None:
+    hub_name = hub.identifier.root
+    spec_builder.add_node_type(name=hub_name, category=f"I3C/Hubs/{hub_name}")
+
+    set_node_attributes(hub, hub_name, spec_builder)
+
+    spec_builder.add_node_type_property(
+        name=hub_name, propname="Manufacturer", proptype="constant", default=hub.manufacturers.root[0]
+    )
+
+    if hub.models:
+        spec_builder.add_node_type_property(
+            name=hub_name, propname="Model", proptype="constant", default=hub.models.root[0]
+        )
+
+    spec_builder.add_node_type_interface(
+        name=hub_name, interfacename=input_segment_name, interfacetype="i3c", side="left"
+    )
+
+    for port in hub.ports:
+        output_segment_name = port.endpoint.root
+        spec_builder.add_node_type_interface(
+            name=hub_name, interfacename=output_segment_name, interfacetype="i3c", side="right"
+        )
+
+    nodes.append(hub_name)
+
+
+def add_i3c_mux(
+    mux: MuX1,
+    input_segment_name: str,
+    nodes: list[str],
+    spec_builder: SpecificationBuilder,
+) -> None:
+    mux_name = mux.identifier.root
+    spec_builder.add_node_type(name=mux_name, category=f"I3C/MUXes/{mux_name}")
+
+    set_node_attributes(mux, mux_name, spec_builder)
+
+    spec_builder.add_node_type_property(
+        name=mux_name, propname="Manufacturer", proptype="constant", default=mux.manufacturers.root[0]
+    )
+
+    if mux.models:
+        spec_builder.add_node_type_property(
+            name=mux_name, propname="Model", proptype="constant", default=mux.models.root[0]
+        )
+
+    spec_builder.add_node_type_interface(
+        name=mux_name, interfacename=input_segment_name, interfacetype="i3c", side="left"
+    )
+
+    for channel in mux.channels:
+        output_segment_name = channel.endpoint.root
+        spec_builder.add_node_type_interface(
+            name=mux_name, interfacename=output_segment_name, interfacetype="i3c", side="right"
+        )
+
+    nodes.append(mux_name)
+
+
+def add_i3c_nodes(
+    i3c_buses: list[BusesI3C],
+    nodes: list[str],
+    spec_builder: SpecificationBuilder,
+) -> None:
+    for bus in i3c_buses:
+        i3c_bus_name = bus.identifier.root
+
+        for segment in bus.segments:
+            input_segment_name = segment.identifier.root
+
+            add_i3c_segment(i3c_bus_name, segment, nodes, spec_builder)
+
+            for hub in segment.hubs or []:
+                add_i3c_hub(hub, input_segment_name, nodes, spec_builder)
+
+            for mux in segment.muxes or []:
+                add_i3c_mux(mux, input_segment_name, nodes, spec_builder)
 
 
 def add_hpm_nodes_to_spec(
@@ -221,7 +359,10 @@ def add_hpm_nodes_to_spec(
     add_device_nodes(devices, nodes, specification_builder)
 
     i2c_buses = hpm.component.buses.i2c or []
-    add_i2c_muxes(i2c_buses, nodes, specification_builder)
+    add_i2c_nodes(i2c_buses, nodes, specification_builder)
+
+    i3c_buses = hpm.component.buses.i3c or []
+    add_i3c_nodes(i3c_buses, nodes, specification_builder)
 
 
 def connect_i2c_segment_connectors(
@@ -233,15 +374,35 @@ def connect_i2c_segment_connectors(
     if not i2c_segment.connectors:
         return
 
+    segment_node = graph_nodes[i2c_segment.identifier.root]
+    [segment_interface] = segment_node.get_interfaces_by_regex(f"{i2c_bus_name}")
+
     connectors = i2c_segment.connectors.root
-    for connector1, connector2 in combinations(connectors, 2):
-        connector1_node = graph_nodes[connector1.endpoint]
-        connector2_node = graph_nodes[connector2.endpoint]
+    for connector in connectors:
+        connector_node = graph_nodes[connector.endpoint]
+        [connector_interface] = connector_node.get_interfaces_by_regex(i2c_bus_name)
 
-        [connector1_interface] = connector1_node.get_interfaces_by_regex(i2c_bus_name)
-        [connector2_interface] = connector2_node.get_interfaces_by_regex(i2c_bus_name)
+        hpm_graph.create_connection(connector_interface, segment_interface)
 
-        hpm_graph.create_connection(connector1_interface, connector2_interface)
+
+def connect_i2c_segment_devices(
+    i2c_bus_name: str,
+    i2c_segment: Segment,
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    if not i2c_segment.connected_devices:
+        return
+
+    segment_node = graph_nodes[i2c_segment.identifier.root]
+    [segment_interface] = segment_node.get_interfaces_by_regex(f"{i2c_bus_name}")
+
+    devices = i2c_segment.connected_devices.root
+    for device in devices:
+        device_node = graph_nodes[device.endpoint]
+        [device_interface] = device_node.get_interfaces_by_regex(i2c_bus_name)
+
+        hpm_graph.create_connection(device_interface, segment_interface)
 
 
 def connect_i2c_segment_muxes(
@@ -253,22 +414,128 @@ def connect_i2c_segment_muxes(
     if not i2c_segment.muxes:
         return
 
+    input_segment_name = i2c_segment.identifier.root
+    input_segment_node = graph_nodes[input_segment_name]
+    [input_segment_interface] = input_segment_node.get_interfaces_by_regex(input_segment_name)
+
     for mux in i2c_segment.muxes:
         mux_name = mux.identifier.root
         mux_node = graph_nodes[mux_name]
 
-        input_segment = i2c_segment.identifier.root
-        [mux_input_interface] = mux_node.get_interfaces_by_regex(input_segment)
+        [mux_input_interface] = mux_node.get_interfaces_by_regex(input_segment_name)
 
-        for input_segment_interface in segment_interfaces[input_segment]:
-            hpm_graph.create_connection(input_segment_interface, mux_input_interface)
+        hpm_graph.create_connection(input_segment_interface, mux_input_interface)
 
         for channel in mux.channels:
-            output_segment = channel.endpoint.root
-            [mux_output_interface] = mux_node.get_interfaces_by_regex(output_segment)
+            output_segment_name = channel.endpoint.root
+            output_segment_node = graph_nodes[output_segment_name]
+            [output_segment_interface] = output_segment_node.get_interfaces_by_regex(output_segment_name)
 
-            for output_segment_interface in segment_interfaces[output_segment]:
-                hpm_graph.create_connection(mux_output_interface, output_segment_interface)
+            [mux_output_interface] = mux_node.get_interfaces_by_regex(output_segment_name)
+
+            hpm_graph.create_connection(mux_output_interface, output_segment_interface)
+
+
+def connect_i3c_segment_connectors(
+    i3c_bus_name: str,
+    i3c_segment: Segment1,
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    if not i3c_segment.connectors:
+        return
+
+    segment_node = graph_nodes[i3c_segment.identifier.root]
+    [segment_interface] = segment_node.get_interfaces_by_regex(f"{i3c_bus_name}")
+
+    connectors = i3c_segment.connectors.root
+    for connector in connectors:
+        connector_node = graph_nodes[connector.endpoint]
+        [connector_interface] = connector_node.get_interfaces_by_regex(i3c_bus_name)
+
+        hpm_graph.create_connection(connector_interface, segment_interface)
+
+
+def connect_i3c_segment_devices(
+    i3c_bus_name: str,
+    i3c_segment: Segment1,
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    if not i3c_segment.connected_devices:
+        return
+
+    segment_node = graph_nodes[i3c_segment.identifier.root]
+    [segment_interface] = segment_node.get_interfaces_by_regex(f"{i3c_bus_name}")
+
+    devices = i3c_segment.connected_devices.root
+    for device in devices:
+        device_node = graph_nodes[device.endpoint]
+        [device_interface] = device_node.get_interfaces_by_regex(i3c_bus_name)
+
+        hpm_graph.create_connection(device_interface, segment_interface)
+
+
+def connect_i3c_segment_muxes(
+    i3c_segment: Segment1,
+    segment_interfaces: dict[str, list[Interface]],
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    if not i3c_segment.muxes:
+        return
+
+    input_segment_name = i3c_segment.identifier.root
+    input_segment_node = graph_nodes[input_segment_name]
+    [input_segment_interface] = input_segment_node.get_interfaces_by_regex(input_segment_name)
+
+    for mux in i3c_segment.muxes:
+        mux_name = mux.identifier.root
+        mux_node = graph_nodes[mux_name]
+
+        [mux_input_interface] = mux_node.get_interfaces_by_regex(input_segment_name)
+
+        hpm_graph.create_connection(input_segment_interface, mux_input_interface)
+
+        for channel in mux.channels:
+            output_segment_name = channel.endpoint.root
+            output_segment_node = graph_nodes[output_segment_name]
+            [output_segment_interface] = output_segment_node.get_interfaces_by_regex(output_segment_name)
+
+            [mux_output_interface] = mux_node.get_interfaces_by_regex(output_segment_name)
+
+            hpm_graph.create_connection(mux_output_interface, output_segment_interface)
+
+
+def connect_i3c_segment_hubs(
+    i3c_segment: Segment1,
+    segment_interfaces: dict[str, list[Interface]],
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    if not i3c_segment.hubs:
+        return
+
+    input_segment_name = i3c_segment.identifier.root
+    input_segment_node = graph_nodes[input_segment_name]
+    [input_segment_interface] = input_segment_node.get_interfaces_by_regex(input_segment_name)
+
+    for hub in i3c_segment.hubs:
+        hub_name = hub.identifier.root
+        hub_node = graph_nodes[hub_name]
+
+        [hub_input_interface] = hub_node.get_interfaces_by_regex(input_segment_name)
+
+        hpm_graph.create_connection(input_segment_interface, hub_input_interface)
+
+        for port in hub.ports:
+            output_segment_name = port.endpoint.root
+            output_segment_node = graph_nodes[output_segment_name]
+            [output_segment_interface] = output_segment_node.get_interfaces_by_regex(output_segment_name)
+
+            [hub_output_interface] = hub_node.get_interfaces_by_regex(output_segment_name)
+
+            hpm_graph.create_connection(hub_output_interface, output_segment_interface)
 
 
 def get_i2c_interfaces(i2c_bus_name: str, i2c_segment: Segment, graph_nodes: dict[str, Node]) -> list[Interface]:
@@ -281,6 +548,21 @@ def get_i2c_interfaces(i2c_bus_name: str, i2c_segment: Segment, graph_nodes: dic
     for connector in connectors:
         connector_node = graph_nodes[connector.endpoint]
         [connector_interface] = connector_node.get_interfaces_by_regex(i2c_bus_name)
+        connector_interfaces.append(connector_interface)
+
+    return connector_interfaces
+
+
+def get_i3c_interfaces(i3c_bus_name: str, i3c_segment: Segment1, graph_nodes: dict[str, Node]) -> list[Interface]:
+    if not i3c_segment.connectors:
+        return []
+
+    connectors = i3c_segment.connectors.root
+    connector_interfaces = []
+
+    for connector in connectors:
+        connector_node = graph_nodes[connector.endpoint]
+        [connector_interface] = connector_node.get_interfaces_by_regex(i3c_bus_name)
         connector_interfaces.append(connector_interface)
 
     return connector_interfaces
@@ -300,7 +582,27 @@ def add_i2c_bus_connections(
 
         for segment in bus.segments:
             connect_i2c_segment_connectors(i2c_bus_name, segment, hpm_graph, graph_nodes)
+            connect_i2c_segment_devices(i2c_bus_name, segment, hpm_graph, graph_nodes)
             connect_i2c_segment_muxes(segment, segment_interfaces, hpm_graph, graph_nodes)
+
+
+def add_i3c_bus_connections(
+    i3c_buses: list[BusesI3C],
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    for bus in i3c_buses:
+        i3c_bus_name = bus.identifier.root
+        segment_interfaces: dict[str, list[Interface]] = {
+            segment.identifier.root: get_i3c_interfaces(i3c_bus_name, segment, graph_nodes)  #
+            for segment in bus.segments
+        }
+
+        for segment in bus.segments:
+            connect_i3c_segment_connectors(i3c_bus_name, segment, hpm_graph, graph_nodes)
+            connect_i3c_segment_devices(i3c_bus_name, segment, hpm_graph, graph_nodes)
+            connect_i3c_segment_muxes(segment, segment_interfaces, hpm_graph, graph_nodes)
+            connect_i3c_segment_hubs(segment, segment_interfaces, hpm_graph, graph_nodes)
 
 
 def add_hpm_graph_connections(
@@ -313,3 +615,4 @@ def add_hpm_graph_connections(
         return
 
     add_i2c_bus_connections(buses.i2c or [], hpm_graph, graph_nodes)
+    add_i3c_bus_connections(buses.i3c or [], hpm_graph, graph_nodes)

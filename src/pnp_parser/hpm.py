@@ -7,7 +7,7 @@ from pipeline_manager.dataflow_builder.entities import Interface, Node
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pydantic import BaseModel
 
-from .fru_model import BusesI2C, HardwareComponent, Connectors, Devices, MuX, Segment
+from .fru_model import BusesI2C, HardwareComponent, Connectors, Devices, MuX, Segment, Slot
 
 
 connector_categories = {
@@ -82,6 +82,26 @@ def add_connector_node(
     nodes.append(identifier)
 
 
+def add_memory_subsystem_slot_node(slot: Slot, nodes: list[str], spec_builder: SpecificationBuilder) -> None:
+    identifier = slot.identifier.root
+
+    spec_builder.add_node_type(name=identifier, category="Connectors/DIMM Slots")
+
+    connected_buses = getattr_none(slot, "connected_buses")
+    if connected_buses:
+        for bus in connected_buses.root:
+            if not bus.type:
+                continue
+
+            spec_builder.add_node_type_interface(
+                name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower()
+            )
+
+    set_node_attributes(slot, identifier, spec_builder)
+
+    nodes.append(identifier)
+
+
 def add_connector_nodes(
     connectors: Connectors,
     nodes: list[str],
@@ -98,6 +118,10 @@ def add_connector_nodes(
         for connector in connector_list:
             category = connector_categories[field]
             add_connector_node(connector, category, nodes, buses, spec_builder)
+
+    for memory_subsystem in connectors.memory_subsystems or []:
+        for slot in memory_subsystem.slots:
+            add_memory_subsystem_slot_node(slot, nodes, spec_builder)
 
 
 def add_device_nodes(

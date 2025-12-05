@@ -1804,3 +1804,25 @@ class HardwareComponent(BaseModel):
 
 class Model(RootModel[HardwareComponent]):
     root: HardwareComponent
+
+
+Bus = (
+    BusesESPI
+    | BusesI2C
+    | BusesI3C
+    | BusesJTAG
+    | BusesLTPI
+    | BusesMPESTI
+    | BusesNCSIRBT
+    | BusesPCIe
+    | BusesPECI
+    | BusesQSPI
+    | BusesSGMII
+    | BusesSPI
+    | BusesSGPIO
+    | BusesUART
+    | BusesUSB
+)
+Segment = SegmentI2C | SegmentI3C | SegmentJTAG | SegmentUSB | SegmentNCSIRBT | SegmentUART
+Hub = HubI3C | HubUSB
+MuX = MuXI2C | MuXI3C | MuXJTAG | MuXUSB | MuXUART

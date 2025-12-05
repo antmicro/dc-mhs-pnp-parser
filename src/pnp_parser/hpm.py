@@ -1,3 +1,4 @@
+from collections import defaultdict
 from enum import Enum
 from typing import Any, Sequence
 from typing_extensions import TypeIs
@@ -14,6 +15,8 @@ from .fru_model import (
     Connector,
     ConnectorsComposite,
     ConnectorsMemorySubsystem,
+    ConnectorsMpic,
+    ConnectorsMxio,
     HardwareComponent,
     Connectors,
     Devices,
@@ -26,6 +29,7 @@ from .fru_model import (
     MuXJTAG,
     MuXUART,
     MuXUSB,
+    ReferencedBusListItem,
     Segment,
     SegmentI2C,
     SegmentI3C,
@@ -116,23 +120,56 @@ def add_connector_node(
 
     spec_builder.add_node_type(name=identifier, category=category)
 
-    if isinstance(connector, ConnectorsComposite):
-        return
+    if not isinstance(connector, ConnectorsComposite):
+        connected_buses = connector.connected_buses
+        if connected_buses:
+            for bus in connected_buses.root:
+                if not bus.type:
+                    continue
 
-    connected_buses = connector.connected_buses
-    if connected_buses:
-        for bus in connected_buses.root:
-            if not bus.type:
-                continue
-
-            spec_builder.add_node_type_interface(
-                name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower()
-            )
-            buses.setdefault(bus.identifier, []).append((identifier, bus.type))
+                spec_builder.add_node_type_interface(
+                    name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower()
+                )
+                buses.setdefault(bus.identifier, []).append((identifier, bus.type))
 
     set_node_attributes(connector, identifier, spec_builder)
 
     nodes.append(identifier)
+
+
+def add_composite_connector_node_interfaces(
+    composites: list[ConnectorsComposite],
+    mpics: list[ConnectorsMpic],
+    mxios: list[ConnectorsMxio],
+    nodes: list[str],
+    spec_builder: SpecificationBuilder,
+) -> None:
+    mpic_buses: defaultdict[str, list[ReferencedBusListItem]] = defaultdict(list)
+    mxio_buses: defaultdict[str, list[ReferencedBusListItem]] = defaultdict(list)
+
+    for mpic in mpics:
+        connected_buses = mpic.connected_buses
+        if connected_buses:
+            mpic_buses[mpic.identifier.root].extend(connected_buses.root)
+
+    for mxio in mxios:
+        connected_buses = mxio.connected_buses
+        if connected_buses:
+            mxio_buses[mxio.identifier.root].extend(connected_buses.root)
+
+    for composite in composites:
+        composite_mpic_buses = [bus for mpic_name in composite.mpics for bus in mpic_buses[mpic_name]]
+        composite_mxio_buses = [bus for mxio_name in composite.mxios for bus in mxio_buses[mxio_name]]
+        added_buses: set[str] = set()
+
+        for bus in composite_mpic_buses + composite_mxio_buses:
+            if not bus.type or bus.identifier in added_buses:
+                continue
+
+            added_buses.add(bus.identifier)
+            spec_builder.add_node_type_interface(
+                name=composite.identifier.root, interfacename=bus.identifier, interfacetype=bus.type.lower()
+            )
 
 
 def add_memory_subsystem_slot_node(slot: Slot, nodes: list[str], spec_builder: SpecificationBuilder) -> None:
@@ -170,6 +207,10 @@ def add_connector_nodes(
         for connector in connector_list:
             category = connector_categories[field]
             add_connector_node(connector, category, nodes, buses, spec_builder)
+
+    add_composite_connector_node_interfaces(
+        connectors.composites or [], connectors.mpics or [], connectors.mxios or [], nodes, spec_builder
+    )
 
     for memory_subsystem in connectors.memory_subsystems or []:
         for slot in memory_subsystem.slots:
@@ -514,6 +555,30 @@ def add_bus_connections(
                 connect_segment_hubs(segment, segment_interfaces, hpm_graph, graph_nodes)
 
 
+def add_composite_connections(
+    composites: list[ConnectorsComposite],
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    for composite in composites:
+        composite_name = composite.identifier.root
+        composite_node = graph_nodes[composite_name]
+
+        for mpic_name in composite.mpics:
+            mpic_node = graph_nodes[mpic_name]
+            [mpic_interface] = mpic_node.get_interfaces_by_regex("MPESTI-")
+            [composite_interface] = composite_node.get_interfaces_by_regex(mpic_interface.name)
+
+            hpm_graph.create_connection(composite_interface, mpic_interface)
+
+        for mxio_name in composite.mxios:
+            mxio_node = graph_nodes[mxio_name]
+            [mxio_interface] = mxio_node.get_interfaces_by_regex("MPESTI-")
+            [composite_interface] = composite_node.get_interfaces_by_regex(mxio_interface.name)
+
+            hpm_graph.create_connection(composite_interface, mxio_interface)
+
+
 def add_hpm_graph_connections(
     hpm: HardwareComponent,
     hpm_graph: DataflowGraph,
@@ -524,3 +589,6 @@ def add_hpm_graph_connections(
         return
 
     add_bus_connections(get_buses(hpm), hpm_graph, graph_nodes)
+
+    composites = hpm.component.connectors.composites or []
+    add_composite_connections(composites, hpm_graph, graph_nodes)

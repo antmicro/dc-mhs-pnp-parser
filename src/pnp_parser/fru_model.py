@@ -1827,5 +1827,7 @@ Segment = SegmentI2C | SegmentI3C | SegmentJTAG | SegmentUSB | SegmentNCSIRBT | 
 Hub = HubI3C | HubUSB
 MuX = MuXI2C | MuXI3C | MuXJTAG | MuXUSB | MuXUART
 
+BusWithSegments = BusesI2C | BusesI3C | BusesJTAG | BusesUSB | BusesNCSIRBT | BusesUART
+
 SegmentWithMuXes = SegmentI2C | SegmentI3C | SegmentJTAG | SegmentUSB | SegmentUART
 SegmentWithHubs = SegmentI3C | SegmentUSB

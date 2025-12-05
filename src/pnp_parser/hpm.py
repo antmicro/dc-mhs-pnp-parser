@@ -9,13 +9,10 @@ from pydantic import BaseModel
 
 from .fru_model import (
     Bus,
+    BusWithSegments,
     Buses,
     BusesI2C,
     BusesI3C,
-    BusesJTAG,
-    BusesNCSIRBT,
-    BusesUART,
-    BusesUSB,
     HardwareComponent,
     Connectors,
     Devices,
@@ -311,16 +308,16 @@ def add_bus_nodes(
     for bus in buses:
         i3c_bus_name = bus.identifier.root
 
-        if isinstance(bus, (BusesI2C, BusesI3C, BusesJTAG, BusesUSB, BusesNCSIRBT, BusesUART)):
+        if isinstance(bus, BusWithSegments):
             for segment in bus.segments:
                 input_segment_name = segment.identifier.root
                 add_segment(segment, nodes, spec_builder)
 
-                if isinstance(segment, (SegmentI3C, SegmentUSB)):
+                if isinstance(segment, SegmentWithHubs):
                     for hub in segment.hubs or []:
                         add_hub(hub, input_segment_name, nodes, spec_builder)
 
-                if isinstance(segment, (SegmentI2C, SegmentI3C, SegmentJTAG, SegmentUSB, SegmentUART)):
+                if isinstance(segment, SegmentWithMuXes):
                     for mux in segment.muxes or []:
                         add_mux(mux, input_segment_name, nodes, spec_builder)
 
@@ -719,7 +716,7 @@ def add_bus_connections(
     graph_nodes: dict[str, Node],
 ) -> None:
     for bus in buses:
-        if not isinstance(bus, (BusesI2C, BusesI3C, BusesJTAG, BusesNCSIRBT, BusesUART, BusesUSB)):
+        if not isinstance(bus, BusWithSegments):
             continue
 
         bus_name = bus.identifier.root

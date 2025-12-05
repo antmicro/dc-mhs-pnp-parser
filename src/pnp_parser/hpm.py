@@ -13,11 +13,11 @@ from .fru_model import (
     HardwareComponent,
     Connectors,
     Devices,
-    Hub,
-    MuX,
-    MuX1,
-    Segment,
-    Segment1,
+    HubI3C,
+    MuXI2C,
+    MuXI3C,
+    SegmentI2C,
+    SegmentI3C,
     Slot,
 )
 
@@ -176,7 +176,7 @@ def add_device_nodes(
 
 def add_i2c_segment(
     i2c_bus_name: str,
-    segment: Segment,
+    segment: SegmentI2C,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
@@ -193,7 +193,7 @@ def add_i2c_segment(
 
 
 def add_i2c_mux(
-    mux: MuX,
+    mux: MuXI2C,
     input_segment_name: str,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
@@ -244,7 +244,7 @@ def add_i2c_nodes(
 
 def add_i3c_segment(
     i3c_bus_name: str,
-    segment: Segment1,
+    segment: SegmentI3C,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
@@ -261,7 +261,7 @@ def add_i3c_segment(
 
 
 def add_i3c_hub(
-    hub: Hub,
+    hub: HubI3C,
     input_segment_name: str,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
@@ -294,7 +294,7 @@ def add_i3c_hub(
 
 
 def add_i3c_mux(
-    mux: MuX1,
+    mux: MuXI3C,
     input_segment_name: str,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
@@ -367,7 +367,7 @@ def add_hpm_nodes_to_spec(
 
 def connect_i2c_segment_connectors(
     i2c_bus_name: str,
-    i2c_segment: Segment,
+    i2c_segment: SegmentI2C,
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
 ) -> None:
@@ -387,7 +387,7 @@ def connect_i2c_segment_connectors(
 
 def connect_i2c_segment_devices(
     i2c_bus_name: str,
-    i2c_segment: Segment,
+    i2c_segment: SegmentI2C,
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
 ) -> None:
@@ -406,7 +406,7 @@ def connect_i2c_segment_devices(
 
 
 def connect_i2c_segment_muxes(
-    i2c_segment: Segment,
+    i2c_segment: SegmentI2C,
     segment_interfaces: dict[str, list[Interface]],
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
@@ -438,7 +438,7 @@ def connect_i2c_segment_muxes(
 
 def connect_i3c_segment_connectors(
     i3c_bus_name: str,
-    i3c_segment: Segment1,
+    i3c_segment: SegmentI3C,
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
 ) -> None:
@@ -458,7 +458,7 @@ def connect_i3c_segment_connectors(
 
 def connect_i3c_segment_devices(
     i3c_bus_name: str,
-    i3c_segment: Segment1,
+    i3c_segment: SegmentI3C,
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
 ) -> None:
@@ -477,7 +477,7 @@ def connect_i3c_segment_devices(
 
 
 def connect_i3c_segment_muxes(
-    i3c_segment: Segment1,
+    i3c_segment: SegmentI3C,
     segment_interfaces: dict[str, list[Interface]],
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
@@ -508,7 +508,7 @@ def connect_i3c_segment_muxes(
 
 
 def connect_i3c_segment_hubs(
-    i3c_segment: Segment1,
+    i3c_segment: SegmentI3C,
     segment_interfaces: dict[str, list[Interface]],
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
@@ -538,7 +538,7 @@ def connect_i3c_segment_hubs(
             hpm_graph.create_connection(hub_output_interface, output_segment_interface)
 
 
-def get_i2c_interfaces(i2c_bus_name: str, i2c_segment: Segment, graph_nodes: dict[str, Node]) -> list[Interface]:
+def get_i2c_interfaces(i2c_bus_name: str, i2c_segment: SegmentI2C, graph_nodes: dict[str, Node]) -> list[Interface]:
     if not i2c_segment.connectors:
         return []
 
@@ -553,7 +553,7 @@ def get_i2c_interfaces(i2c_bus_name: str, i2c_segment: Segment, graph_nodes: dic
     return connector_interfaces
 
 
-def get_i3c_interfaces(i3c_bus_name: str, i3c_segment: Segment1, graph_nodes: dict[str, Node]) -> list[Interface]:
+def get_i3c_interfaces(i3c_bus_name: str, i3c_segment: SegmentI3C, graph_nodes: dict[str, Node]) -> list[Interface]:
     if not i3c_segment.connectors:
         return []
 

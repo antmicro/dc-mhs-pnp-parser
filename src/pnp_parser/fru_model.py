@@ -446,7 +446,7 @@ class Channel(BaseModel):
     endpoint: Endpoint = Field(alias="Endpoint")
 
 
-class MuX(BaseModel):
+class MuXI2C(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -505,7 +505,7 @@ class Port(BaseModel):
     """
 
 
-class Hub(BaseModel):
+class HubI3C(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -543,7 +543,7 @@ class Channel1(BaseModel):
     endpoint: Endpoint = Field(alias="Endpoint")
 
 
-class MuX1(BaseModel):
+class MuXI3C(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -591,7 +591,7 @@ class MuX1(BaseModel):
     physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
-class Segment1(BaseModel):
+class SegmentI3C(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -599,11 +599,11 @@ class Segment1(BaseModel):
     """
     The name used in the netlist for this segment.
     """
-    hubs: list[Hub] | None = Field(None, alias="Hubs")
+    hubs: list[HubI3C] | None = Field(None, alias="Hubs")
     """
     Information about I3C hubs.
     """
-    muxes: list[MuX1] | None = Field(None, alias="MUXes")
+    muxes: list[MuXI3C] | None = Field(None, alias="MUXes")
     """
     Information about I3C MUXes.
     """
@@ -632,7 +632,7 @@ class BusesI3C(BaseModel):
     """
     The frequency at which this I3C bus shall operate.
     """
-    segments: list[Segment1] = Field(alias="Segments")
+    segments: list[SegmentI3C] = Field(alias="Segments")
     """
     Information about I3C segments.
     """
@@ -650,7 +650,7 @@ class Channel2(BaseModel):
     """
 
 
-class MuX2(BaseModel):
+class MuXJTAG(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -660,11 +660,11 @@ class MuX2(BaseModel):
     """
 
 
-class Segment2(BaseModel):
+class SegmentJTAG(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
-    muxes: list[MuX2] | None = Field(None, alias="MUXes")
+    muxes: list[MuXJTAG] | None = Field(None, alias="MUXes")
     """
     Information about MUXes in a JTAG segment.
     """
@@ -681,7 +681,7 @@ class BusesJTAG(BaseModel):
     """
     The name used in the netlist for this bus.
     """
-    segments: list[Segment2] = Field(alias="Segments")
+    segments: list[SegmentJTAG] = Field(alias="Segments")
     """
     Information about JTAG segments.
     """
@@ -740,7 +740,7 @@ class Isolation(BaseModel):
     """
 
 
-class Segment3(BaseModel):
+class SegmentNCSIRBT(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -764,7 +764,7 @@ class BusesNCSIRBT(BaseModel):
     """
     The name used in the netlist for this bus.
     """
-    segments: list[Segment3] = Field(alias="Segments")
+    segments: list[SegmentNCSIRBT] = Field(alias="Segments")
     """
     Information about segments for this NC-SI RBT bus.
     """
@@ -1008,7 +1008,7 @@ class Channel4(BaseModel):
     mux_config: MUXChannelConfig = Field(alias="MUXConfig")
 
 
-class MuX3(BaseModel):
+class MuXUART(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -1026,11 +1026,11 @@ class MuX3(BaseModel):
     physical_location: PhysicalLocation | None = Field(None, alias="PhysicalLocation")
 
 
-class Segment4(BaseModel):
+class SegmentUART(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
-    muxes: list[MuX3] | None = Field(None, alias="MUXes")
+    muxes: list[MuXUART] | None = Field(None, alias="MUXes")
     """
     Information about MUXes in a UART segment.
     """
@@ -1051,13 +1051,13 @@ class BusesUART(BaseModel):
     The voltage needed to drive this UART bus.
     """
     required_power_state: RequiredPowerState = Field(alias="RequiredPowerState")
-    segments: list[Segment4] = Field(alias="Segments")
+    segments: list[SegmentUART] = Field(alias="Segments")
     """
     Information about UART segments.
     """
 
 
-class MuX4(BaseModel):
+class MuXUSB(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -1086,7 +1086,7 @@ class Port1(BaseModel):
     endpoint: Endpoint = Field(alias="Endpoint")
 
 
-class Hub1(BaseModel):
+class HubUSB(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -1581,7 +1581,7 @@ class Bridge(BaseModel):
     linked_buses: ReferencedBusList | None = Field(None, alias="LinkedBuses")
 
 
-class Segment(BaseModel):
+class SegmentI2C(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
@@ -1591,7 +1591,7 @@ class Segment(BaseModel):
     """
     connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
     connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
-    muxes: list[MuX] | None = Field(None, alias="MUXes")
+    muxes: list[MuXI2C] | None = Field(None, alias="MUXes")
     """
     Information about I2C MUXes in this I2C segment.
     """
@@ -1622,7 +1622,7 @@ class BusesI2C(BaseModel):
     """
     A description of the intended usage for this bus.
     """
-    segments: list[Segment] = Field(alias="Segments")
+    segments: list[SegmentI2C] = Field(alias="Segments")
     """
     Information about I2C segments.
     """
@@ -1641,17 +1641,17 @@ class Bridge1(BaseModel):
     linked_buses: ReferencedBusList | None = Field(None, alias="LinkedBuses")
 
 
-class Segment5(BaseModel):
+class SegmentUSB(BaseModel):
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
     identifier: NamedComponent = Field(alias="Identifier")
     alias: ComponentAlias | None = Field(None, alias="Alias")
     connected_devices: ConnectedDeviceList | None = Field(None, alias="ConnectedDevices")
     connectors: AttachedConnectorList | None = Field(None, alias="Connectors")
-    muxes: list[MuX4] | None = Field(None, alias="MUXes")
+    muxes: list[MuXUSB] | None = Field(None, alias="MUXes")
     """
     Information about muxes for this USB bus.
     """
-    hubs: list[Hub1] | None = Field(None, alias="Hubs")
+    hubs: list[HubUSB] | None = Field(None, alias="Hubs")
     """
     Information about hubs for this USB bus segment.
     """
@@ -1686,7 +1686,7 @@ class BusesUSB(BaseModel):
     """
     A description of the intended usage for this bus.
     """
-    segments: list[Segment5] = Field(alias="Segments")
+    segments: list[SegmentUSB] = Field(alias="Segments")
     """
     Information about segments for this USB bus.
     """

@@ -1,4 +1,3 @@
-from itertools import combinations
 from enum import Enum
 from typing import Any, Sequence
 from typing_extensions import TypeIs
@@ -29,7 +28,6 @@ from .fru_model import (
     MuXJTAG,
     MuXUART,
     MuXUSB,
-    NamedComponent,
     Segment,
     SegmentI2C,
     SegmentI3C,

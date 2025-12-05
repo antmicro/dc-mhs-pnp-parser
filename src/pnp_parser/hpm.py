@@ -1,6 +1,7 @@
 from itertools import combinations
 from enum import Enum
-from typing import Any
+from typing import Any, Sequence
+from typing_extensions import TypeIs
 
 from pipeline_manager.dataflow_builder.dataflow_graph import DataflowGraph
 from pipeline_manager.dataflow_builder.entities import Interface, Node
@@ -8,19 +9,59 @@ from pipeline_manager.specification_builder import SpecificationBuilder
 from pydantic import BaseModel
 
 from .fru_model import (
+    Bus,
+    Buses,
     BusesI2C,
     BusesI3C,
+    BusesJTAG,
+    BusesNCSIRBT,
+    BusesUART,
+    BusesUSB,
     HardwareComponent,
     Connectors,
     Devices,
+    Hub,
     HubI3C,
+    HubUSB,
+    MuX,
     MuXI2C,
     MuXI3C,
+    MuXJTAG,
+    MuXUART,
+    MuXUSB,
+    NamedComponent,
+    Segment,
     SegmentI2C,
     SegmentI3C,
+    SegmentJTAG,
+    SegmentNCSIRBT,
+    SegmentUART,
+    SegmentUSB,
     Slot,
 )
 
+
+segment_categories: dict[type[Segment], str] = {
+    SegmentI2C: "I2C",
+    SegmentI3C: "I3C",
+    SegmentJTAG: "JTAG",
+    SegmentUSB: "USB",
+    SegmentNCSIRBT: "NC-SI RBT",
+    SegmentUART: "UART",
+}
+
+hub_categories: dict[type[Hub], str] = {
+    HubI3C: "I3C",
+    HubUSB: "USB",
+}
+
+mux_categories: dict[type[MuX], str] = {
+    MuXI2C: "I2C",
+    MuXI3C: "I3C",
+    MuXJTAG: "JTAG",
+    MuXUSB: "USB",
+    MuXUART: "UART",
+}
 
 connector_categories = {
     "socs": "Connectors/SoC",
@@ -242,38 +283,40 @@ def add_i2c_nodes(
                 add_i2c_mux(mux, input_segment_name, nodes, spec_builder)
 
 
-def add_i3c_segment(
-    i3c_bus_name: str,
-    segment: SegmentI3C,
+def add_segment(
+    segment: Segment,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
     segment_name = segment.identifier.root
-    spec_builder.add_node_type(name=segment_name, category=f"I3C/Segments/{segment_name}")
+    bus_category = segment_categories[type(segment)]
+    spec_builder.add_node_type(name=segment_name, category=f"{bus_category}/Segments/{segment_name}")
 
     set_node_attributes(segment, segment_name, spec_builder)
 
     spec_builder.add_node_type_interface(
-        name=segment_name, interfacename=segment_name, interfacetype="i3c", side="right", maxcount=-1
+        name=segment_name, interfacename=segment_name, interfacetype=bus_category.lower(), side="right", maxcount=-1
     )
 
     nodes.append(segment_name)
 
 
-def add_i3c_hub(
-    hub: HubI3C,
+def add_hub(
+    hub: Hub,
     input_segment_name: str,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
     hub_name = hub.identifier.root
-    spec_builder.add_node_type(name=hub_name, category=f"I3C/Hubs/{hub_name}")
+    bus_category = hub_categories[type(hub)]
+    spec_builder.add_node_type(name=hub_name, category=f"{bus_category}/Hubs/{hub_name}")
 
     set_node_attributes(hub, hub_name, spec_builder)
 
-    spec_builder.add_node_type_property(
-        name=hub_name, propname="Manufacturer", proptype="constant", default=hub.manufacturers.root[0]
-    )
+    if hub.manufacturers:
+        spec_builder.add_node_type_property(
+            name=hub_name, propname="Manufacturer", proptype="constant", default=hub.manufacturers.root[0]
+        )
 
     if hub.models:
         spec_builder.add_node_type_property(
@@ -281,69 +324,77 @@ def add_i3c_hub(
         )
 
     spec_builder.add_node_type_interface(
-        name=hub_name, interfacename=input_segment_name, interfacetype="i3c", side="left"
+        name=hub_name, interfacename=input_segment_name, interfacetype=bus_category.lower(), side="left"
     )
 
     for port in hub.ports:
         output_segment_name = port.endpoint.root
         spec_builder.add_node_type_interface(
-            name=hub_name, interfacename=output_segment_name, interfacetype="i3c", side="right"
+            name=hub_name, interfacename=output_segment_name, interfacetype=bus_category.lower(), side="right"
         )
 
     nodes.append(hub_name)
 
 
-def add_i3c_mux(
-    mux: MuXI3C,
+def add_mux(
+    mux: MuX,
     input_segment_name: str,
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
     mux_name = mux.identifier.root
-    spec_builder.add_node_type(name=mux_name, category=f"I3C/MUXes/{mux_name}")
+    bus_category = mux_categories[type(mux)]
+    spec_builder.add_node_type(name=mux_name, category=f"{bus_category}/MUXes/{mux_name}")
 
     set_node_attributes(mux, mux_name, spec_builder)
 
-    spec_builder.add_node_type_property(
-        name=mux_name, propname="Manufacturer", proptype="constant", default=mux.manufacturers.root[0]
-    )
-
-    if mux.models:
+    if isinstance(mux, (MuXI2C, MuXI3C)):
         spec_builder.add_node_type_property(
-            name=mux_name, propname="Model", proptype="constant", default=mux.models.root[0]
+            name=mux_name, propname="Manufacturer", proptype="constant", default=mux.manufacturers.root[0]
         )
 
+        if mux.models:
+            spec_builder.add_node_type_property(
+                name=mux_name, propname="Model", proptype="constant", default=mux.models.root[0]
+            )
+
     spec_builder.add_node_type_interface(
-        name=mux_name, interfacename=input_segment_name, interfacetype="i3c", side="left"
+        name=mux_name, interfacename=input_segment_name, interfacetype=bus_category.lower(), side="left"
     )
 
     for channel in mux.channels:
         output_segment_name = channel.endpoint.root
         spec_builder.add_node_type_interface(
-            name=mux_name, interfacename=output_segment_name, interfacetype="i3c", side="right"
+            name=mux_name, interfacename=output_segment_name, interfacetype=bus_category.lower(), side="right"
         )
 
     nodes.append(mux_name)
 
 
-def add_i3c_nodes(
-    i3c_buses: list[BusesI3C],
+def add_bus_nodes(
+    buses: Sequence[Bus],
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
-    for bus in i3c_buses:
+    for bus in buses:
         i3c_bus_name = bus.identifier.root
 
-        for segment in bus.segments:
-            input_segment_name = segment.identifier.root
+        if isinstance(bus, (BusesI2C, BusesI3C, BusesJTAG, BusesUSB, BusesNCSIRBT, BusesUART)):
+            for segment in bus.segments:
+                input_segment_name = segment.identifier.root
+                add_segment(segment, nodes, spec_builder)
 
-            add_i3c_segment(i3c_bus_name, segment, nodes, spec_builder)
+                if isinstance(segment, (SegmentI3C, SegmentUSB)):
+                    for hub in segment.hubs or []:
+                        add_hub(hub, input_segment_name, nodes, spec_builder)
 
-            for hub in segment.hubs or []:
-                add_i3c_hub(hub, input_segment_name, nodes, spec_builder)
+                if isinstance(segment, (SegmentI2C, SegmentI3C, SegmentJTAG, SegmentUSB, SegmentUART)):
+                    for mux in segment.muxes or []:
+                        add_mux(mux, input_segment_name, nodes, spec_builder)
 
-            for mux in segment.muxes or []:
-                add_i3c_mux(mux, input_segment_name, nodes, spec_builder)
+
+def is_bus_list(x: Any) -> TypeIs[list[Bus]]:
+    return isinstance(x, list) and all(isinstance(x_elem, Bus) for x_elem in x)
 
 
 def add_hpm_nodes_to_spec(
@@ -358,11 +409,15 @@ def add_hpm_nodes_to_spec(
     devices = hpm.component.devices
     add_device_nodes(devices, nodes, specification_builder)
 
-    i2c_buses = hpm.component.buses.i2c or []
-    add_i2c_nodes(i2c_buses, nodes, specification_builder)
+    all_buses_list: list[Bus] = []
 
-    i3c_buses = hpm.component.buses.i3c or []
-    add_i3c_nodes(i3c_buses, nodes, specification_builder)
+    for bus_list_name in Buses.model_fields:
+        field_value = getattr(hpm.component.buses, bus_list_name)
+
+        if is_bus_list(field_value):
+            all_buses_list.extend(field_value)
+
+    add_bus_nodes(all_buses_list, nodes, specification_builder)
 
 
 def connect_i2c_segment_connectors(

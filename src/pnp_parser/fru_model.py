@@ -1827,6 +1827,47 @@ Segment = SegmentI2C | SegmentI3C | SegmentJTAG | SegmentUSB | SegmentNCSIRBT | 
 Hub = HubI3C | HubUSB
 MuX = MuXI2C | MuXI3C | MuXJTAG | MuXUSB | MuXUART
 
+Connector = (
+    ConnectorsSOCs
+    | ConnectorsMemorySubsystem
+    | ConnectorsComposite
+    | ConnectorsCoolingSubsystem
+    | ConnectorsDrive
+    | ConnectorsMxio
+    | ConnectorsMpic
+    | ConnectorsOCPMezzanineSlot
+    | ConnectorsPowerSupply
+    | ConnectorsControlPanel
+    | ConnectorsPCIeCEM
+    | ConnectorsPowerDistributionBoardManagement
+    | ConnectorsRealTimeClockBattery
+    | ConnectorsFan
+    | ConnectorsSCI
+    | ConnectorsIntrusionDetection
+    | ConnectorsPhysicalUSB
+    | ConnectorsOEM
+)
+
+ConnectorWithConnectedBuses = (
+    ConnectorsSOCs
+    | ConnectorsMemorySubsystem
+    | ConnectorsCoolingSubsystem
+    | ConnectorsDrive
+    | ConnectorsMxio
+    | ConnectorsMpic
+    | ConnectorsOCPMezzanineSlot
+    | ConnectorsPowerSupply
+    | ConnectorsControlPanel
+    | ConnectorsPCIeCEM
+    | ConnectorsPowerDistributionBoardManagement
+    | ConnectorsRealTimeClockBattery
+    | ConnectorsFan
+    | ConnectorsSCI
+    | ConnectorsIntrusionDetection
+    | ConnectorsPhysicalUSB
+    | ConnectorsOEM
+)
+
 BusWithSegments = BusesI2C | BusesI3C | BusesJTAG | BusesUSB | BusesNCSIRBT | BusesUART
 
 SegmentWithMuXes = SegmentI2C | SegmentI3C | SegmentJTAG | SegmentUSB | SegmentUART

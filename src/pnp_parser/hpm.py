@@ -141,7 +141,6 @@ def add_composite_connector_node_interfaces(
     composites: list[ConnectorsComposite],
     mpics: list[ConnectorsMpic],
     mxios: list[ConnectorsMxio],
-    nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
     mpic_buses: defaultdict[str, list[ReferencedBusListItem]] = defaultdict(list)
@@ -209,7 +208,7 @@ def add_connector_nodes(
             add_connector_node(connector, category, nodes, buses, spec_builder)
 
     add_composite_connector_node_interfaces(
-        connectors.composites or [], connectors.mpics or [], connectors.mxios or [], nodes, spec_builder
+        connectors.composites or [], connectors.mpics or [], connectors.mxios or [], spec_builder
     )
 
     for memory_subsystem in connectors.memory_subsystems or []:
@@ -349,8 +348,6 @@ def add_bus_nodes(
     spec_builder: SpecificationBuilder,
 ) -> None:
     for bus in buses:
-        i3c_bus_name = bus.identifier.root
-
         if isinstance(bus, BusWithSegments):
             for segment in bus.segments:
                 input_segment_name = segment.identifier.root
@@ -454,7 +451,6 @@ def connect_segment_devices(
 
 def connect_segment_muxes(
     segment: SegmentWithMuXes,
-    segment_interfaces: dict[str, list[Interface]],
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
 ) -> None:
@@ -485,7 +481,6 @@ def connect_segment_muxes(
 
 def connect_segment_hubs(
     segment: SegmentWithHubs,
-    segment_interfaces: dict[str, list[Interface]],
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
 ) -> None:
@@ -539,20 +534,15 @@ def add_bus_connections(
             continue
 
         bus_name = bus.identifier.root
-        segment_interfaces: dict[str, list[Interface]] = {
-            segment.identifier.root: get_segment_interfaces(bus_name, segment, graph_nodes)  #
-            for segment in bus.segments
-        }
-
         for segment in bus.segments:
             connect_segment_connectors(bus_name, segment, hpm_graph, graph_nodes)
             connect_segment_devices(bus_name, segment, hpm_graph, graph_nodes)
 
             if isinstance(segment, SegmentWithMuXes):
-                connect_segment_muxes(segment, segment_interfaces, hpm_graph, graph_nodes)
+                connect_segment_muxes(segment, hpm_graph, graph_nodes)
 
             if isinstance(segment, SegmentWithHubs):
-                connect_segment_hubs(segment, segment_interfaces, hpm_graph, graph_nodes)
+                connect_segment_hubs(segment, hpm_graph, graph_nodes)
 
 
 def add_composite_connections(

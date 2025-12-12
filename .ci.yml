@@ -14,7 +14,6 @@ build:
     - wget -O Release_0_5_0.zip "https://drive.google.com/uc?id=1HaQbhgrJ--7bkkTC8bfA2pGSGGwdEeJm&export=download"
     - unzip Release_0_5_0.zip
     - pnp-parser "Release_0_5_0/JSON Files/Mockups/HPM/hpm-fru-mockup-type1-hpm-example-v0.6.8.json" hpm-fru-mockup-v0.6.8-spec.json hpm-fru-mockup-v0.6.8-dataflow.json
-    # - python3 src/graph_aligner/graph_aligner.py write position.json hpm-fru-mockup-v0.6.8-dataflow.json
   artifacts:
     expire_in: 4 week
     when: always
@@ -28,8 +27,25 @@ deploy:
   dependencies: [build]
   variables:
     GIT_STRATEGY: none
+  before_get_sources:
+    - apt-get -qq update
+    - apt-get -qqy install python3-venv wget unzip git
+  before_script:
+    - python3 -m venv .venv
+    - source .venv/bin/activate
+    - git clone https://github.com/antmicro/kenning-pipeline-manager
+    - cd kenning-pipeline-manager
+    - pip install .
+    - cd $PROJECT_DIR
+    - mkdir workspace
   script:
-    - tar cf $CI_DOCS_ARCHIVE hpm-fru-mockup-v0.6.8-*.json
+    - source .venv/bin/activate
+    - ./kenning-pipeline-manager/build static-html --single-html index.html hpm-fru-mockup-v0.6.8-spec.json hpm-fru-mockup-v0.6.8-dataflow.json --workspace-directory workspace --editor-title "$EDITOR_TITLE"
+  after_script:
+    - tar cf $CI_DOCS_ARCHIVE index.html
   artifacts:
     paths:
+      - index.html
+      - hpm-fru-mockup-v0.6.8-spec.json
+      - hpm-fru-mockup-v0.6.8-dataflow.json
       - $CI_DOCS_ARCHIVE

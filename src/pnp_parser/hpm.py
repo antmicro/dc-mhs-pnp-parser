@@ -109,6 +109,7 @@ def set_node_attributes(model: BaseModel, node_name: str, spec_builder: Specific
 def add_connector_node(
     connector: Connector,
     category: str,
+    physical_signals: defaultdict[str, list[str]],
     nodes: list[str],
     buses: dict[str, list[tuple[str, str]]],
     spec_builder: SpecificationBuilder,
@@ -131,6 +132,9 @@ def add_connector_node(
                     name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower()
                 )
                 buses.setdefault(bus.identifier, []).append((identifier, bus.type))
+
+    for signal_name in physical_signals[identifier]:
+        spec_builder.add_node_type_interface(name=identifier, interfacename=signal_name, interfacetype="signal")
 
     set_node_attributes(connector, identifier, spec_builder)
 
@@ -193,6 +197,7 @@ def add_memory_subsystem_slot_node(slot: Slot, nodes: list[str], spec_builder: S
 
 def add_connector_nodes(
     connectors: Connectors,
+    physical_signals: defaultdict[str, list[str]],
     nodes: list[str],
     buses: dict[str, list[tuple[str, str]]],
     spec_builder: SpecificationBuilder,
@@ -205,7 +210,7 @@ def add_connector_nodes(
 
         for connector in connector_list:
             category = connector_categories[field]
-            add_connector_node(connector, category, nodes, buses, spec_builder)
+            add_connector_node(connector, category, physical_signals, nodes, buses, spec_builder)
 
     add_composite_connector_node_interfaces(
         connectors.composites or [], connectors.mpics or [], connectors.mxios or [], spec_builder
@@ -216,8 +221,52 @@ def add_connector_nodes(
             add_memory_subsystem_slot_node(slot, nodes, spec_builder)
 
 
+def get_physical_signals(devices: Devices, connectors: Connectors) -> defaultdict[str, list[str]]:
+    physical_signals: defaultdict[str, list[str]] = defaultdict(list)
+
+    for device in devices.root:
+        device_name = device.identifier.root
+
+        for signal in device.physical_signals or []:
+            if not signal.type_id or not signal.subtype_id:
+                continue
+
+            target_name = signal.type_id.root
+            signal_name = signal.subtype_id.root
+
+            physical_signals[device_name].append(signal_name)
+            physical_signals[target_name].append(signal_name)
+
+    connectors_with_signals: Iterable[ConnectorWithSignals] = (
+        connector
+        for connectors_type in (
+            connectors.scis or [],
+            connectors.pcie_cems or [],
+            connectors.ocp_mezzanine_slots or [],
+            connectors.mxios or [],
+        )
+        for connector in connectors_type
+    )
+
+    for connector in connectors_with_signals:
+        connector_name = connector.identifier.root
+
+        for signal in connector.signals or []:
+            if not signal.type_id or not signal.subtype_id:
+                continue
+
+            target_name = signal.type_id.root
+            signal_name = signal.subtype_id.root
+
+            physical_signals[connector_name].append(signal_name)
+            physical_signals[target_name].append(signal_name)
+
+    return physical_signals
+
+
 def add_device_nodes(
     devices: Devices,
+    physical_signals: defaultdict[str, list[str]],
     nodes: list[str],
     spec_builder: SpecificationBuilder,
 ) -> None:
@@ -229,6 +278,8 @@ def add_device_nodes(
 
         spec_builder.add_node_type(name=node_name, category=f"Devices/{device.type}")
 
+        added_interfaces: set[str] = set()
+
         if device.connected_buses:
             for connected_bus in device.connected_buses.root:
                 if not connected_bus.type:
@@ -237,6 +288,12 @@ def add_device_nodes(
                 spec_builder.add_node_type_interface(
                     name=node_name, interfacename=connected_bus.identifier, interfacetype=connected_bus.type.lower()
                 )
+                added_interfaces.add(connected_bus.identifier)
+
+        for signal_name in physical_signals[node_name]:
+            if signal_name not in added_interfaces:
+                spec_builder.add_node_type_interface(name=node_name, interfacename=signal_name, interfacetype="signal")
+                added_interfaces.add(signal_name)
 
         if device.manufacturers:
             spec_builder.add_node_type_property(
@@ -400,11 +457,13 @@ def add_hpm_nodes_to_spec(
     buses: dict[str, list[tuple[str, str]]],
     specification_builder: SpecificationBuilder,
 ) -> None:
-    connectors = hpm.component.connectors
-    add_connector_nodes(connectors, nodes, buses, specification_builder)
-
     devices = hpm.component.devices
-    add_device_nodes(devices, nodes, specification_builder)
+    connectors = hpm.component.connectors
+
+    physical_signals = get_physical_signals(devices, connectors)
+
+    add_device_nodes(devices, physical_signals, nodes, specification_builder)
+    add_connector_nodes(connectors, physical_signals, nodes, buses, specification_builder)
 
     add_bus_nodes(get_buses(hpm), nodes, specification_builder)
 
@@ -444,7 +503,7 @@ def connect_segment_devices(
     devices = segment.connected_devices.root
     for device in devices:
         device_node = graph_nodes[device.endpoint]
-        [device_interface] = device_node.get_interfaces_by_regex(bus_name)
+        [device_interface] = device_node.get_interfaces_by_regex(f"^{bus_name}$")
 
         hpm_graph.create_connection(device_interface, segment_interface)
 

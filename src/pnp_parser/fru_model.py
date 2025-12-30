@@ -1868,6 +1868,8 @@ ConnectorWithConnectedBuses = (
     | ConnectorsOEM
 )
 
+ConnectorWithSignals = ConnectorsSCI | ConnectorsPCIeCEM | ConnectorsOCPMezzanineSlot | ConnectorsMxio
+
 BusWithSegments = BusesI2C | BusesI3C | BusesJTAG | BusesUSB | BusesNCSIRBT | BusesUART
 
 SegmentWithMuXes = SegmentI2C | SegmentI3C | SegmentJTAG | SegmentUSB | SegmentUART

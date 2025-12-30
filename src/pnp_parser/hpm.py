@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Any, Sequence
+from typing import Any, Iterable, Sequence
 from typing_extensions import TypeIs
 
 from pipeline_manager.dataflow_builder.dataflow_graph import DataflowGraph
@@ -13,6 +13,7 @@ from .fru_model import (
     BusWithSegments,
     Buses,
     Connector,
+    ConnectorWithSignals,
     ConnectorsComposite,
     ConnectorsMemorySubsystem,
     ConnectorsMpic,
@@ -628,6 +629,41 @@ def add_composite_connections(
             hpm_graph.create_connection(composite_interface, mxio_interface)
 
 
+def add_signal_connections(
+    connectors: Connectors,
+    hpm_graph: DataflowGraph,
+    graph_nodes: dict[str, Node],
+) -> None:
+    connectors_with_signals: Iterable[ConnectorWithSignals] = (
+        connector
+        for connectors_type in (
+            connectors.scis or [],
+            connectors.pcie_cems or [],
+            connectors.ocp_mezzanine_slots or [],
+            connectors.mxios or [],
+        )
+        for connector in connectors_type
+    )
+
+    for connector in connectors_with_signals:
+        connector_name = connector.identifier.root
+        connector_node = graph_nodes[connector_name]
+
+        for signal in connector.signals or []:
+            if not signal.type_id or not signal.subtype_id:
+                continue
+
+            signal_name = signal.subtype_id.root
+
+            target_name = signal.type_id.root
+            target_node = graph_nodes[target_name]
+
+            [connector_interface] = connector_node.get_interfaces_by_regex(signal_name)
+            [target_interface] = target_node.get_interfaces_by_regex(f"^{signal_name}$")
+
+            hpm_graph.create_connection(connector_interface, target_interface)
+
+
 def add_hpm_graph_connections(
     hpm: HardwareComponent,
     hpm_graph: DataflowGraph,
@@ -641,3 +677,6 @@ def add_hpm_graph_connections(
 
     composites = hpm.component.connectors.composites or []
     add_composite_connections(composites, hpm_graph, graph_nodes)
+
+    connectors = hpm.component.connectors
+    add_signal_connections(connectors, hpm_graph, graph_nodes)

@@ -1871,6 +1871,9 @@ ConnectorWithConnectedBuses = (
 ConnectorWithSignals = ConnectorsSCI | ConnectorsPCIeCEM | ConnectorsOCPMezzanineSlot | ConnectorsMxio
 
 BusWithSegments = BusesI2C | BusesI3C | BusesJTAG | BusesUSB | BusesNCSIRBT | BusesUART
+BusWithConnections = (
+    BusesDisplayPort | BusesESPI | BusesLTPI | BusesMPESTI | BusesPECI | BusesQSPI | BusesSGMII | BusesSPI | BusesSGPIO
+)
 
 SegmentWithMuXes = SegmentI2C | SegmentI3C | SegmentJTAG | SegmentUSB | SegmentUART
 SegmentWithHubs = SegmentI3C | SegmentUSB

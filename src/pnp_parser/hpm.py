@@ -1,5 +1,6 @@
 from collections import defaultdict
 from enum import Enum
+from itertools import combinations
 from typing import Any, Iterable, Sequence
 from typing_extensions import TypeIs
 
@@ -10,6 +11,7 @@ from pydantic import BaseModel
 
 from .fru_model import (
     Bus,
+    BusWithConnections,
     BusWithSegments,
     Buses,
     Connector,
@@ -107,6 +109,12 @@ def set_node_attributes(model: BaseModel, node_name: str, spec_builder: Specific
         )
 
 
+def get_node_interface(node_name: str, interface_name: str, graph_nodes: dict[str, Node]) -> Interface:
+    node = graph_nodes[node_name]
+    [interface] = node.get_interfaces_by_regex(f"^{interface_name}$")
+    return interface
+
+
 def add_connector_node(
     connector: Connector,
     category: str,
@@ -130,7 +138,7 @@ def add_connector_node(
                     continue
 
                 spec_builder.add_node_type_interface(
-                    name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower()
+                    name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower(), maxcount=-1
                 )
                 buses.setdefault(bus.identifier, []).append((identifier, bus.type))
 
@@ -469,6 +477,48 @@ def add_hpm_nodes_to_spec(
     add_bus_nodes(get_buses(hpm), nodes, specification_builder)
 
 
+def connect_bus_connectors_devices(
+    bus: BusWithConnections, hpm_graph: DataflowGraph, graph_nodes: dict[str, Node]
+) -> None:
+    bus_name = bus.identifier.root
+
+    # HPM FRU JSON mockup file cases:
+    # 1. one connector, one device
+    # 2. two connectors, 0/1 devices
+
+    device_interfaces = (
+        [get_node_interface(device.endpoint, bus_name, graph_nodes) for device in bus.connected_devices.root]
+        if bus.connected_devices
+        else []
+    )
+
+    connector_interfaces = (
+        [get_node_interface(connector.endpoint, bus_name, graph_nodes) for connector in bus.connectors.root]
+        if bus.connectors
+        else []
+    )
+
+    # Connect device to connectors
+    # In the HPM FRU JSON mockup file if there are connectors then there is at most one device defined
+    # (1-to-n connections if correct, n-to-n otherwise)
+    for device_interface in device_interfaces:
+        for connector_interface in connector_interfaces:
+            hpm_graph.create_connection(device_interface, connector_interface)
+
+    # Connect devices to each other
+    # Shouldn't run since in the HPM FRU JSON mockup file there is at most one device defined
+    # (no connections if correct, n-to-n otherwise)
+    for device1_interface, device2_interface in combinations(device_interfaces, 2):
+        hpm_graph.create_connection(device1_interface, device2_interface)
+
+    if not device_interfaces:
+        # Connect connectors to each other
+        # In the HPM FRU mockup JSON if there are no devices then there are two connectors
+        # (1-to-1 connection assuming there are two connectors, otherwise n-to-n)
+        for connector1_interface, connector2_interface in combinations(connector_interfaces, 2):
+            hpm_graph.create_connection(connector1_interface, connector2_interface)
+
+
 def connect_segment_connectors(
     bus_name: str,
     segment: Segment,
@@ -590,19 +640,21 @@ def add_bus_connections(
     graph_nodes: dict[str, Node],
 ) -> None:
     for bus in buses:
-        if not isinstance(bus, BusWithSegments):
-            continue
-
         bus_name = bus.identifier.root
-        for segment in bus.segments:
-            connect_segment_connectors(bus_name, segment, hpm_graph, graph_nodes)
-            connect_segment_devices(bus_name, segment, hpm_graph, graph_nodes)
 
-            if isinstance(segment, SegmentWithMuXes):
-                connect_segment_muxes(segment, hpm_graph, graph_nodes)
+        if isinstance(bus, BusWithConnections):
+            connect_bus_connectors_devices(bus, hpm_graph, graph_nodes)
 
-            if isinstance(segment, SegmentWithHubs):
-                connect_segment_hubs(segment, hpm_graph, graph_nodes)
+        if isinstance(bus, BusWithSegments):
+            for segment in bus.segments:
+                connect_segment_connectors(bus_name, segment, hpm_graph, graph_nodes)
+                connect_segment_devices(bus_name, segment, hpm_graph, graph_nodes)
+
+                if isinstance(segment, SegmentWithMuXes):
+                    connect_segment_muxes(segment, hpm_graph, graph_nodes)
+
+                if isinstance(segment, SegmentWithHubs):
+                    connect_segment_hubs(segment, hpm_graph, graph_nodes)
 
 
 def add_composite_connections(

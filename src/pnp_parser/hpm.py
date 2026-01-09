@@ -14,6 +14,21 @@ from .fru_model import (
     BusWithConnections,
     BusWithSegments,
     Buses,
+    BusesESPI,
+    BusesI2C,
+    BusesI3C,
+    BusesJTAG,
+    BusesLTPI,
+    BusesMPESTI,
+    BusesNCSIRBT,
+    BusesPCIe,
+    BusesPECI,
+    BusesQSPI,
+    BusesSGMII,
+    BusesSGPIO,
+    BusesSPI,
+    BusesUART,
+    BusesUSB,
     Connector,
     ConnectorWithSignals,
     ConnectorsComposite,
@@ -68,6 +83,24 @@ mux_categories: dict[type[MuX], str] = {
     MuXUART: "UART",
 }
 
+bus_names: dict[type[Bus], str] = {
+    BusesESPI: "ESPI",
+    BusesI2C: "I2C",
+    BusesI3C: "I3C",
+    BusesJTAG: "JTAG",
+    BusesLTPI: "LTPI",
+    BusesMPESTI: "MPESTI",
+    BusesNCSIRBT: "NCSI-RBT",
+    BusesPCIe: "PCIe",
+    BusesPECI: "PECI",
+    BusesQSPI: "QSPI",
+    BusesSGMII: "SGMII",
+    BusesSPI: "SPI",
+    BusesSGPIO: "SGPIO",
+    BusesUART: "UART",
+    BusesUSB: "USB",
+}
+
 connector_categories = {
     "socs": "Connectors/SoC",
     "memory_subsystems": "Connectors/Memory Subsystem",
@@ -117,19 +150,21 @@ def get_node_interface(node_name: str, interface_name: str, graph_nodes: dict[st
 
 def add_connector_node(
     connector: Connector,
-    category: str,
+    field: str,
     physical_signals: defaultdict[str, list[str]],
     nodes: list[str],
     buses: dict[str, list[tuple[str, str]]],
+    node_layers: dict[str, str],
     spec_builder: SpecificationBuilder,
 ) -> None:
+    category = connector_categories[field]
+
     if isinstance(connector, ConnectorsMemorySubsystem):
         return
 
     identifier = connector.identifier.root
 
-    spec_builder.add_node_type(name=identifier, category=category)
-
+    bus_list = []
     if not isinstance(connector, ConnectorsComposite):
         connected_buses = connector.connected_buses
         if connected_buses:
@@ -137,10 +172,15 @@ def add_connector_node(
                 if not bus.type:
                     continue
 
-                spec_builder.add_node_type_interface(
-                    name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower(), maxcount=-1
-                )
-                buses.setdefault(bus.identifier, []).append((identifier, bus.type))
+                bus_list.append(bus)
+
+    spec_builder.add_node_type(name=identifier, category=category)
+
+    for bus in bus_list:
+        spec_builder.add_node_type_interface(
+            name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower(), maxcount=-1
+        )
+        buses.setdefault(bus.identifier, []).append((identifier, bus.type))
 
     for signal_name in physical_signals[identifier]:
         spec_builder.add_node_type_interface(name=identifier, interfacename=signal_name, interfacetype="signal")
@@ -209,6 +249,7 @@ def add_connector_nodes(
     physical_signals: defaultdict[str, list[str]],
     nodes: list[str],
     buses: dict[str, list[tuple[str, str]]],
+    node_layers: dict[str, str],
     spec_builder: SpecificationBuilder,
 ) -> None:
     for field in Connectors.model_fields:
@@ -218,8 +259,7 @@ def add_connector_nodes(
             continue
 
         for connector in connector_list:
-            category = connector_categories[field]
-            add_connector_node(connector, category, physical_signals, nodes, buses, spec_builder)
+            add_connector_node(connector, field, physical_signals, nodes, buses, node_layers, spec_builder)
 
     add_composite_connector_node_interfaces(
         connectors.composites or [], connectors.mpics or [], connectors.mxios or [], spec_builder
@@ -327,7 +367,9 @@ def add_segment(
 ) -> None:
     segment_name = segment.identifier.root
     bus_category = segment_categories[type(segment)]
-    spec_builder.add_node_type(name=segment_name, category=f"{bus_category}/Segments/{segment_name}")
+    spec_builder.add_node_type(
+        name=segment_name, category=f"{bus_category}/Segments/{segment_name}", layer=bus_category
+    )
 
     set_node_attributes(segment, segment_name, spec_builder)
 
@@ -346,7 +388,7 @@ def add_hub(
 ) -> None:
     hub_name = hub.identifier.root
     bus_category = hub_categories[type(hub)]
-    spec_builder.add_node_type(name=hub_name, category=f"{bus_category}/Hubs/{hub_name}")
+    spec_builder.add_node_type(name=hub_name, category=f"{bus_category}/Hubs/{hub_name}", layer=bus_category)
 
     set_node_attributes(hub, hub_name, spec_builder)
 
@@ -381,7 +423,7 @@ def add_mux(
 ) -> None:
     mux_name = mux.identifier.root
     bus_category = mux_categories[type(mux)]
-    spec_builder.add_node_type(name=mux_name, category=f"{bus_category}/MUXes/{mux_name}")
+    spec_builder.add_node_type(name=mux_name, category=f"{bus_category}/MUXes/{mux_name}", layer=bus_category)
 
     set_node_attributes(mux, mux_name, spec_builder)
 
@@ -468,13 +510,23 @@ def add_hpm_nodes_to_spec(
 ) -> None:
     devices = hpm.component.devices
     connectors = hpm.component.connectors
+    node_layers: dict[str, str] = {}
 
     physical_signals = get_physical_signals(devices, connectors)
 
     add_device_nodes(devices, physical_signals, nodes, specification_builder)
-    add_connector_nodes(connectors, physical_signals, nodes, buses, specification_builder)
+    add_connector_nodes(connectors, physical_signals, nodes, buses, node_layers, specification_builder)
 
     add_bus_nodes(get_buses(hpm), nodes, specification_builder)
+
+
+def add_hpm_layers_to_spec(
+    specification_builder: SpecificationBuilder,
+):
+    for bus_name in bus_names.values():
+        specification_builder.metadata_add_layer(bus_name, nodelayers=[bus_name], nodeinterfaces=[bus_name])
+
+    specification_builder.metadata_add_layer("Signal", nodeinterfaces=["Signal"])
 
 
 def connect_bus_connectors_devices(

@@ -7,7 +7,15 @@ from pathlib import Path
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pipeline_manager.frontend_builder import build_prepare
 
-from pnp_parser.hpm import add_hpm_graph_connections, add_hpm_layers_to_spec, add_hpm_nodes_to_spec
+from pnp_parser.hpm import (
+    add_hpm_graph_connections,
+    add_hpm_layers_to_spec,
+    add_hpm_nodes_to_spec,
+    place_hpm_graph_nodes_fewest_connections,
+    place_hpm_graph_nodes_grid,
+    place_hpm_graph_nodes_line,
+    place_hpm_graph_nodes_tree,
+)
 
 from pipeline_manager.dataflow_builder.dataflow_builder import GraphBuilder, DataflowGraph
 
@@ -84,6 +92,7 @@ def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
     print("Creating HPM graph..")
     hpm_graph = create_graph(graph_builder, "Top Graph", set(fru_spec.hpm_nodes), top_graph_nodes)
     add_hpm_graph_connections(hpm, hpm_graph, top_graph_nodes)
+    place_hpm_graph_nodes_tree(hpm_graph)
 
     print("Validating specification..")
     spec = specification_builder.create_and_validate_spec(

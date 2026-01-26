@@ -197,6 +197,8 @@ def add_connector_node(
 
     set_node_attributes(connector, identifier, spec_builder)
 
+    spec_builder.add_node_type_style(name=identifier, style="Connector")
+
     nodes.append(identifier)
 
 
@@ -368,6 +370,8 @@ def add_device_nodes(
                 name=node_name, propname="Model", proptype="constant", default=device.models.root[0]
             )
 
+        spec_builder.add_node_type_style(name=node_name, style="Device")
+
         nodes.append(node_name)
 
 
@@ -387,6 +391,8 @@ def add_segment(
     spec_builder.add_node_type_interface(
         name=segment_name, interfacename=segment_name, interfacetype=bus_category.lower(), side="right", maxcount=-1
     )
+
+    spec_builder.add_node_type_style(name=segment_name, style=bus_category.lower())
 
     nodes.append(segment_name)
 
@@ -423,6 +429,8 @@ def add_hub(
             name=hub_name, interfacename=output_segment_name, interfacetype=bus_category.lower(), side="right"
         )
 
+    spec_builder.add_node_type_style(name=hub_name, style=bus_category.lower())
+
     nodes.append(hub_name)
 
 
@@ -457,6 +465,8 @@ def add_mux(
         spec_builder.add_node_type_interface(
             name=mux_name, interfacename=output_segment_name, interfacetype=bus_category.lower(), side="right"
         )
+
+    spec_builder.add_node_type_style(name=mux_name, style=bus_category.lower())
 
     nodes.append(mux_name)
 
@@ -540,7 +550,12 @@ def add_hpm_layers_to_spec(
     specification_builder.metadata_add_layer("Signal", nodeinterfaces=["Signal"])
 
 
-def add_hpm_interface_styles(hpm_graph: SpecificationBuilder) -> None:
+def add_hpm_styles_to_spec(hpm_graph: SpecificationBuilder) -> None:
+    def darken(color_hex: str, factor: float) -> str:
+        color = (int(color_hex[2 * i + 1 : 2 * i + 3], base=16) for i in range(3))
+        color_darken = [round(c * factor) for c in color]
+        return "#" + "".join(hex(c)[2:].rjust(2, "0") for c in color_darken)
+
     styles = {
         "i2c": "#ffa193",
         "i3c": "#ebac66",
@@ -560,9 +575,14 @@ def add_hpm_interface_styles(hpm_graph: SpecificationBuilder) -> None:
         "signal": "#bebebe",
     }
     for interface_type, interface_color in styles.items():
+        darker = darken(interface_color, 0.4)
+        hpm_graph.metadata_add_node_style(interface_type, stylecolor=darker)
         hpm_graph.metadata_add_interface_styling(
             interface_type, interfacecolor=interface_color, interfaceconncolor=interface_color
         )
+
+    hpm_graph.metadata_add_node_style("Device", stylecolor="#ba6901")
+    hpm_graph.metadata_add_node_style("Connector", stylecolor="#7399ff")
 
 
 def connect_bus_connectors_devices(

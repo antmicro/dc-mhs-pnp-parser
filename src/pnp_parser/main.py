@@ -9,7 +9,7 @@ from pipeline_manager.frontend_builder import build_prepare
 
 from pnp_parser.hpm import (
     add_hpm_graph_connections,
-    add_hpm_interface_styles,
+    add_hpm_styles_to_spec,
     add_hpm_layers_to_spec,
     add_hpm_nodes_to_spec,
     place_hpm_graph_nodes_fewest_connections,
@@ -43,9 +43,9 @@ def create_spec(hpm: HardwareComponent, workspace: Path) -> FruSpec:
 
     hpm_nodes: list[str] = []
     hpm_buses: dict[str, list[tuple[str, str]]] = {}
+    add_hpm_styles_to_spec(specification_builder)
     add_hpm_nodes_to_spec(hpm, hpm_nodes, hpm_buses, specification_builder)
     add_hpm_layers_to_spec(specification_builder)
-    add_hpm_interface_styles(specification_builder)
 
     spec = specification_builder.create_and_validate_spec(
         dump_spec="dump.json", sort_spec=True, workspacedir=str(workspace)

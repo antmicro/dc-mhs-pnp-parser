@@ -152,6 +152,15 @@ def get_node_interface(node_name: str, interface_name: str, graph_nodes: dict[st
     return interface
 
 
+def add_bus_interface(
+    node_identifier: str, bus, buses: dict[str, list[tuple[str, str]]], spec_builder: SpecificationBuilder
+) -> None:
+    spec_builder.add_node_type_interface(
+        name=node_identifier, interfacename=bus.identifier, interfacetype=bus.type.lower(), maxcount=-1
+    )
+    buses.setdefault(bus.identifier, []).append((node_identifier, bus.type))
+
+
 def add_connector_node(
     connector: Connector,
     field: str,
@@ -168,7 +177,7 @@ def add_connector_node(
 
     identifier = connector.identifier.root
 
-    bus_list = []
+    bus_list: list[ReferencedBusListItem] = []
     if not isinstance(connector, ConnectorsComposite):
         connected_buses = connector.connected_buses
         if connected_buses:
@@ -181,10 +190,7 @@ def add_connector_node(
     spec_builder.add_node_type(name=identifier, category=category)
 
     for bus in bus_list:
-        spec_builder.add_node_type_interface(
-            name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower(), maxcount=-1
-        )
-        buses.setdefault(bus.identifier, []).append((identifier, bus.type))
+        add_bus_interface(identifier, bus, buses, spec_builder)
 
     for signal_name in physical_signals[identifier]:
         spec_builder.add_node_type_interface(name=identifier, interfacename=signal_name, interfacetype="signal")
@@ -198,6 +204,7 @@ def add_composite_connector_node_interfaces(
     composites: list[ConnectorsComposite],
     mpics: list[ConnectorsMpic],
     mxios: list[ConnectorsMxio],
+    buses: dict[str, list[tuple[str, str]]],
     spec_builder: SpecificationBuilder,
 ) -> None:
     mpic_buses: defaultdict[str, list[ReferencedBusListItem]] = defaultdict(list)
@@ -218,17 +225,19 @@ def add_composite_connector_node_interfaces(
         composite_mxio_buses = [bus for mxio_name in composite.mxios for bus in mxio_buses[mxio_name]]
         added_buses: set[str] = set()
 
+        composite_identifier = composite.identifier.root
+
         for bus in composite_mpic_buses + composite_mxio_buses:
             if not bus.type or bus.identifier in added_buses:
                 continue
 
             added_buses.add(bus.identifier)
-            spec_builder.add_node_type_interface(
-                name=composite.identifier.root, interfacename=bus.identifier, interfacetype=bus.type.lower()
-            )
+            add_bus_interface(composite_identifier, bus, buses, spec_builder)
 
 
-def add_memory_subsystem_slot_node(slot: Slot, nodes: list[str], spec_builder: SpecificationBuilder) -> None:
+def add_memory_subsystem_slot_node(
+    slot: Slot, nodes: list[str], buses: dict[str, list[tuple[str, str]]], spec_builder: SpecificationBuilder
+) -> None:
     identifier = slot.identifier.root
 
     spec_builder.add_node_type(name=identifier, category="Connectors/DIMM Slots")
@@ -239,9 +248,7 @@ def add_memory_subsystem_slot_node(slot: Slot, nodes: list[str], spec_builder: S
             if not bus.type:
                 continue
 
-            spec_builder.add_node_type_interface(
-                name=identifier, interfacename=bus.identifier, interfacetype=bus.type.lower()
-            )
+            add_bus_interface(identifier, bus, buses, spec_builder)
 
     set_node_attributes(slot, identifier, spec_builder)
 
@@ -266,12 +273,12 @@ def add_connector_nodes(
             add_connector_node(connector, field, physical_signals, nodes, buses, node_layers, spec_builder)
 
     add_composite_connector_node_interfaces(
-        connectors.composites or [], connectors.mpics or [], connectors.mxios or [], spec_builder
+        connectors.composites or [], connectors.mpics or [], connectors.mxios or [], buses, spec_builder
     )
 
     for memory_subsystem in connectors.memory_subsystems or []:
         for slot in memory_subsystem.slots:
-            add_memory_subsystem_slot_node(slot, nodes, spec_builder)
+            add_memory_subsystem_slot_node(slot, nodes, buses, spec_builder)
 
 
 def get_physical_signals(devices: Devices, connectors: Connectors) -> defaultdict[str, list[str]]:

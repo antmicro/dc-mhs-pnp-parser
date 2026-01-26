@@ -540,6 +540,31 @@ def add_hpm_layers_to_spec(
     specification_builder.metadata_add_layer("Signal", nodeinterfaces=["Signal"])
 
 
+def add_hpm_interface_styles(hpm_graph: SpecificationBuilder) -> None:
+    styles = {
+        "i2c": "#ffa193",
+        "i3c": "#ebac66",
+        "espi": "#c0bc61",
+        "jtag": "#83c887",
+        "ltpi": "#47c8ba",
+        "mpesti": "#4cbde3",
+        "ncsi-rbt": "#83aaf3",
+        "pcie": "#b496e4",
+        "peci": "#d488bb",
+        "qspi": "#e08385",
+        "sgmii": "#d38b53",
+        "spi": "#b09b3f",
+        "sgpio": "#79a85f",
+        "uart": "#30ac90",
+        "usb": "#09a4bc",
+        "signal": "#bebebe",
+    }
+    for interface_type, interface_color in styles.items():
+        hpm_graph.metadata_add_interface_styling(
+            interface_type, interfacecolor=interface_color, interfaceconncolor=interface_color
+        )
+
+
 def connect_bus_connectors_devices(
     bus: BusWithConnections, hpm_graph: DataflowGraph, graph_nodes: dict[str, Node]
 ) -> None:

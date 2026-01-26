@@ -892,14 +892,8 @@ def place_node_tree(
     interface_connections: dict[NodeID, list[tuple[InterfaceID, list[Interface]]]],
     interface_parent_nodes: dict[InterfaceID, Node],
     node_connected_nodes: dict[NodeID, set[NodeID]],
-    indent_size=0,
 ) -> BoundingBox:
-    # connected_nodes = get_all_connected_nodes(graph, node.id, node_connected_nodes)
-    # if connected_nodes & placed_nodes:
-    #     return BoundingBox(x, y, 0, 0)
-
     placed_nodes.add(node.id)
-    indent = " " * indent_size
 
     offset = 100
 
@@ -919,8 +913,6 @@ def place_node_tree(
 
     right_interfaces = right_interfaces[::-1]
 
-    print(f"{indent}<TREE-{node.name}>")
-    print(f"{indent} <LEFT-{node.name}>")
     for left_interface in left_interfaces:
         interface_connections[node.id] = [
             (from_interface, to_interface)
@@ -941,19 +933,15 @@ def place_node_tree(
             interface_connections,
             interface_parent_nodes,
             node_connected_nodes,
-            indent_size + 2,
         )
         bounding_box = BoundingBox.union(bounding_box, children_bounding_box) if bounding_box else children_bounding_box
         new_x += children_bounding_box.width + offset
         new_y += offset
-    print(f"{indent} </LEFT-{node.name}>")
 
-    print(f"{indent} <{node.name} />")
     node.position = Vector2(new_x, y)
     new_x += 150 + offset
     new_y = start_y + (len(right_interfaces) - 1) * offset
 
-    print(f"{indent} <RIGHT-{node.name}>")
     for right_interface in right_interfaces:
         interface_connections[node.id] = [
             (from_interface, to_interface)
@@ -966,13 +954,18 @@ def place_node_tree(
             continue
 
         children_bounding_box = place_node_tree(
-            graph, to_node, new_x, new_y, placed_nodes, interface_connections, interface_parent_nodes, indent_size + 2
+            graph,
+            to_node,
+            new_x,
+            new_y,
+            placed_nodes,
+            interface_connections,
+            interface_parent_nodes,
+            node_connected_nodes,
         )
         bounding_box = BoundingBox.union(bounding_box, children_bounding_box) if bounding_box else children_bounding_box
         new_x += children_bounding_box.width + offset
         new_y -= offset
-    print(f"{indent} </RIGHT-{node.name}>")
-    print(f"{indent}</TREE-{node.name}>")
 
     node_bounding_box = get_node_bounding_box(node)
     return BoundingBox.union(bounding_box, node_bounding_box) if bounding_box else node_bounding_box
@@ -1040,40 +1033,11 @@ def place_hpm_graph_nodes_fewest_connections(hpm_graph: DataflowGraph) -> None:
 
     x = 0
 
-    # while True:
-    #     node_connected_nodes = {
-    #         node_id: connected_nodes
-    #         for node_id, connected_nodes in node_connected_nodes.items()
-    #         if len(connected_nodes) > 0
-    #     }
-
-    #     if len(node_connected_nodes) == 0:
-    #         break
-
-    #     # min_connections = min(node_connected_count.values())
-    #     first_node_id, _ = min(node_connected_nodes.items(), key=lambda x: len(x[1]))
-    #     first_node = hpm_graph._nodes[first_node_id]
-    #     connected = {hpm_graph._nodes[node_id].name for node_id in node_connected_nodes[first_node_id]}
-    #     print(f"Would place {first_node.name}, connections to {connected}")
-
-    #     for connected_node in node_connected_nodes[first_node.id]:
-    #         if first_node.id in node_connected_nodes[connected_node]:
-    #             node_connected_nodes[connected_node].remove(first_node.id)
-
-    #     # print(min_connections)
-    #     first_node.position = Vector2(x, 0)
-    #     x += 500
-    #     node_connected_nodes.pop(first_node.id)
-
     node_connected_nodes = {
         node_id: connected_nodes
         for node_id, connected_nodes in node_connected_nodes.items()
         if len(connected_nodes) > 0
     }
-    # node_connected_nodes = {
-    #     node_id: {interface.id for interfaces in interface_connections[node_id].values() for interface in interfaces}
-    #     for node_id, node in hpm_graph._nodes.items()
-    # }
 
     node_priorities = {node_id: -1 for node_id in hpm_graph._nodes.keys()}
 
@@ -1121,14 +1085,8 @@ def place_hpm_graph_nodes_line(hpm_graph: DataflowGraph):
         if j % 100 == 0:
             print(f"Iteration {j}")
 
-        # index1 = rnd.randint(0, len(nodes_order) - 1)
-        # index2 = rnd.randint(0, len(nodes_order) - 1)
-
         new_nodes_order = nodes_order[:]
         rnd.shuffle(new_nodes_order)
-        # temp = new_nodes_order[index1]
-        # new_nodes_order[index1] = new_nodes_order[index2]
-        # new_nodes_order[index2] = temp
 
         new_score = get_score(new_nodes_order)
         if new_score < score:
@@ -1178,7 +1136,6 @@ def place_hpm_graph_nodes_grid(hpm_graph: DataflowGraph):
                 continue
 
             connected_node_positions = [node_positions[connected_node_id] for connected_node_id in connected_nodes]
-            # print(connected_node_positions)
             xs, ys = zip(*connected_node_positions)
             new_x, new_y = (sum(xs) / len(xs), sum(ys) / len(ys))
             new_node_positions[node_id] = (x * 0.5 + new_x * 0.5, y * 0.5 + new_y * 0.5)
@@ -1193,22 +1150,11 @@ def place_hpm_graph_nodes_grid(hpm_graph: DataflowGraph):
             print(f"Iteration {j}")
 
         node_id = list(node_positions.keys())[rnd.randint(0, len(node_positions) - 1)]
-        # index2 = rnd.randint(0, len(nodes_order) - 1)
 
         closer_node_positions = move_closer_to_connected(node_positions)
         new_node_positions = node_positions | {node_id: closer_node_positions[node_id]}
-        # new_node_positions = {node_id: (rnd.random(), rnd.random()) for node_id in node_ids}
-        # new_node_positions = node_positions | {node_id: random_shift(node_positions[node_id])}
-        #
-        # new_nodes_order = node_positions[:]
-        # rnd.shuffle(new_nodes_order)
-        # print([node_id_to_index[node_id] if node_id is not None else None for node_id in new_nodes_order])
-        # temp = new_nodes_order[index1]
-        # new_nodes_order[index1] = new_nodes_order[index2]
-        # new_nodes_order[index2] = temp
 
         xs, ys = zip(*node_positions.values())
-        # print(min(xs), min(ys), max(xs), max(ys))
 
         new_score = get_score(new_node_positions)
 

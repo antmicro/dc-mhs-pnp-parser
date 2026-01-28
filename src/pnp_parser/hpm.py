@@ -105,6 +105,8 @@ bus_names: dict[type[Bus], str] = {
     BusesUSB: "USB",
 }
 
+bus_name_to_type: dict[str, type[Bus]] = {v: k for k, v in bus_names.items()}
+
 connector_categories = {
     "socs": "Connectors/SoC",
     "memory_subsystems": "Connectors/Memory Subsystem",

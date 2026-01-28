@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Iterable
 from pipeline_manager.dataflow_builder.entities import Node
 import typer
@@ -12,6 +13,8 @@ from pnp_parser.hpm import (
     add_hpm_styles_to_spec,
     add_hpm_layers_to_spec,
     add_hpm_nodes_to_spec,
+    bus_name_to_type,
+    bus_names,
     place_hpm_graph_nodes_fewest_connections,
     place_hpm_graph_nodes_grid,
     place_hpm_graph_nodes_line,
@@ -96,17 +99,22 @@ def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
     add_hpm_graph_connections(hpm, hpm_graph, top_graph_nodes)
     place_hpm_graph_nodes_tree(hpm_graph)
 
-    i2c_graph_nodes: dict[str, Node] = {}
-    i2c_nodes = [
-        node["name"]
-        for node in specification_builder._nodes.values()
-        if any(interface["type"] == "i2c" for interface in node.get("interfaces", []))
-    ]
+    buses_nodes: defaultdict[str, set[str]] = defaultdict(set)
+    for node in specification_builder._nodes.values():
+        for interface in node.get("interfaces", []):
+            buses_nodes[interface["type"]].add(node["name"])
 
-    print("Creating I2C graph..")
-    i2c_graph = create_graph(graph_builder, "I2C Graph", set(i2c_nodes), i2c_graph_nodes)
-    add_hpm_graph_connections(hpm, i2c_graph, i2c_graph_nodes, bus_type=BusesI2C)
-    place_hpm_graph_nodes_tree(i2c_graph)
+    for bus_name_lower, bus_nodes in buses_nodes.items():
+        bus_name = bus_name_lower.upper()
+        bus_type = bus_name_to_type.get(bus_name)
+        if bus_type is None:
+            continue
+
+        print(f"Creating {bus_name} graph..")
+        bus_graph_nodes: dict[str, Node] = {}
+        bus_graph = create_graph(graph_builder, f"{bus_name} Graph", bus_nodes, bus_graph_nodes)
+        add_hpm_graph_connections(hpm, bus_graph, bus_graph_nodes, bus_type)
+        place_hpm_graph_nodes_tree(bus_graph)
 
     print("Validating specification..")
     spec = specification_builder.create_and_validate_spec(

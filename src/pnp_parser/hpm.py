@@ -146,9 +146,36 @@ def set_node_attributes(model: BaseModel, node_name: str, spec_builder: Specific
         )
 
 
-def get_node_interface(node_name: str, interface_name: str, graph_nodes: dict[str, Node]) -> Interface:
-    node = graph_nodes[node_name]
-    [interface] = node.get_interfaces_by_regex(f"^{interface_name}$")
+def get_node(node_or_node_name: Node | str, graph_nodes: dict[str, Node]):
+    if isinstance(node_or_node_name, Node):
+        return node_or_node_name
+    else:
+        return graph_nodes.get(node_or_node_name)
+
+
+def get_node_interface(
+    node_or_node_name: Node | str, interface_name: str, graph_nodes: dict[str, Node]
+) -> Interface | None:
+    node = get_node(node_or_node_name, graph_nodes)
+    if not node:
+        return None
+
+    interface = next((interface for interface in node.interfaces if interface.name == interface_name), None)
+    return interface
+
+
+def get_node_interface_by_type(
+    node_or_node_name: Node | str, interface_type: str, graph_nodes: dict[str, Node]
+) -> Interface | None:
+    if isinstance(node_or_node_name, Node):
+        node = node_or_node_name
+    else:
+        node = graph_nodes.get(node_or_node_name)
+
+        if node is None:
+            return None
+
+    interface = next((interface for interface in node.interfaces if interface.type == interface_type), None)
     return interface
 
 
@@ -636,13 +663,14 @@ def connect_segment_connectors(
     if not segment.connectors:
         return
 
-    segment_node = graph_nodes[segment.identifier.root]
-    [segment_interface] = segment_node.get_interfaces_by_regex(f"{bus_name}")
+    segment_interface = graph_nodes[segment.identifier.root].interfaces[0]
 
     connectors = segment.connectors.root
     for connector in connectors:
-        connector_node = graph_nodes[connector.endpoint]
-        [connector_interface] = connector_node.get_interfaces_by_regex(bus_name)
+        connector_interface = get_node_interface(connector.endpoint, bus_name, graph_nodes)
+
+        if not connector_interface:
+            continue
 
         hpm_graph.create_connection(connector_interface, segment_interface)
 
@@ -657,12 +685,14 @@ def connect_segment_devices(
         return
 
     segment_node = graph_nodes[segment.identifier.root]
-    [segment_interface] = segment_node.get_interfaces_by_regex(f"{bus_name}")
+    segment_interface = segment_node.interfaces[0]
 
     devices = segment.connected_devices.root
     for device in devices:
-        device_node = graph_nodes[device.endpoint]
-        [device_interface] = device_node.get_interfaces_by_regex(f"^{bus_name}$")
+        device_interface = get_node_interface(device.endpoint, bus_name, graph_nodes)
+
+        if not device_interface:
+            continue
 
         hpm_graph.create_connection(device_interface, segment_interface)
 
@@ -676,23 +706,31 @@ def connect_segment_muxes(
         return
 
     input_segment_name = segment.identifier.root
-    input_segment_node = graph_nodes[input_segment_name]
-    [input_segment_interface] = input_segment_node.get_interfaces_by_regex(input_segment_name)
+    input_segment_interface = get_node_interface(input_segment_name, input_segment_name, graph_nodes)
+
+    if not input_segment_interface:
+        return
 
     for mux in segment.muxes:
         mux_name = mux.identifier.root
-        mux_node = graph_nodes[mux_name]
+        mux_input_interface = get_node_interface(mux_name, input_segment_name, graph_nodes)
 
-        [mux_input_interface] = mux_node.get_interfaces_by_regex(input_segment_name)
+        if not mux_input_interface:
+            continue
 
         hpm_graph.create_connection(input_segment_interface, mux_input_interface)
 
         for channel in mux.channels:
             output_segment_name = channel.endpoint.root
-            output_segment_node = graph_nodes[output_segment_name]
-            [output_segment_interface] = output_segment_node.get_interfaces_by_regex(output_segment_name)
+            output_segment_interface = get_node_interface(output_segment_name, output_segment_name, graph_nodes)
 
-            [mux_output_interface] = mux_node.get_interfaces_by_regex(output_segment_name)
+            if not output_segment_interface:
+                continue
+
+            mux_output_interface = get_node_interface(mux_name, output_segment_name, graph_nodes)
+
+            if not mux_output_interface:
+                continue
 
             hpm_graph.create_connection(mux_output_interface, output_segment_interface)
 
@@ -706,40 +744,33 @@ def connect_segment_hubs(
         return
 
     input_segment_name = segment.identifier.root
-    input_segment_node = graph_nodes[input_segment_name]
-    [input_segment_interface] = input_segment_node.get_interfaces_by_regex(input_segment_name)
+    input_segment_interface = get_node_interface(input_segment_name, input_segment_name, graph_nodes)
+
+    if not input_segment_interface:
+        return
 
     for hub in segment.hubs:
         hub_name = hub.identifier.root
-        hub_node = graph_nodes[hub_name]
+        hub_input_interface = get_node_interface(hub_name, input_segment_name, graph_nodes)
 
-        [hub_input_interface] = hub_node.get_interfaces_by_regex(input_segment_name)
+        if not hub_input_interface:
+            continue
 
         hpm_graph.create_connection(input_segment_interface, hub_input_interface)
 
         for port in hub.ports:
             output_segment_name = port.endpoint.root
-            output_segment_node = graph_nodes[output_segment_name]
-            [output_segment_interface] = output_segment_node.get_interfaces_by_regex(output_segment_name)
+            output_segment_interface = get_node_interface(output_segment_name, output_segment_name, graph_nodes)
 
-            [hub_output_interface] = hub_node.get_interfaces_by_regex(output_segment_name)
+            if not output_segment_interface:
+                continue
+
+            hub_output_interface = get_node_interface(hub_name, output_segment_name, graph_nodes)
+
+            if not hub_output_interface:
+                continue
 
             hpm_graph.create_connection(hub_output_interface, output_segment_interface)
-
-
-def get_segment_interfaces(bus_name: str, segment: Segment, graph_nodes: dict[str, Node]) -> list[Interface]:
-    if not segment.connectors:
-        return []
-
-    connectors = segment.connectors.root
-    connector_interfaces = []
-
-    for connector in connectors:
-        connector_node = graph_nodes[connector.endpoint]
-        [connector_interface] = connector_node.get_interfaces_by_regex(bus_name)
-        connector_interfaces.append(connector_interface)
-
-    return connector_interfaces
 
 
 def add_bus_connections(
@@ -772,19 +803,30 @@ def add_composite_connections(
 ) -> None:
     for composite in composites:
         composite_name = composite.identifier.root
-        composite_node = graph_nodes[composite_name]
+
+        composite_node = graph_nodes.get(composite_name)
+        if not composite_node:
+            continue
 
         for mpic_name in composite.mpics:
-            mpic_node = graph_nodes[mpic_name]
-            [mpic_interface] = mpic_node.get_interfaces_by_regex("MPESTI-")
-            [composite_interface] = composite_node.get_interfaces_by_regex(mpic_interface.name)
+            mxio_interface = get_node_interface_by_type(mpic_name, "mpesti", graph_nodes)
+            if not mxio_interface:
+                continue
 
-            hpm_graph.create_connection(composite_interface, mpic_interface)
+            composite_interface = get_node_interface(composite_node, mxio_interface.name, graph_nodes)
+            if not composite_interface:
+                continue
+
+            hpm_graph.create_connection(composite_interface, mxio_interface)
 
         for mxio_name in composite.mxios:
-            mxio_node = graph_nodes[mxio_name]
-            [mxio_interface] = mxio_node.get_interfaces_by_regex("MPESTI-")
-            [composite_interface] = composite_node.get_interfaces_by_regex(mxio_interface.name)
+            mxio_interface = get_node_interface_by_type(mxio_name, "mxio", graph_nodes)
+            if not mxio_interface:
+                continue
+
+            composite_interface = get_node_interface(composite_node, mxio_interface.name, graph_nodes)
+            if not composite_interface:
+                continue
 
             hpm_graph.create_connection(composite_interface, mxio_interface)
 
@@ -807,19 +849,21 @@ def add_signal_connections(
 
     for connector in connectors_with_signals:
         connector_name = connector.identifier.root
-        connector_node = graph_nodes[connector_name]
 
         for signal in connector.signals or []:
             if not signal.type_id or not signal.subtype_id:
                 continue
 
             signal_name = signal.subtype_id.root
-
             target_name = signal.type_id.root
-            target_node = graph_nodes[target_name]
 
-            [connector_interface] = connector_node.get_interfaces_by_regex(signal_name)
-            [target_interface] = target_node.get_interfaces_by_regex(f"^{signal_name}$")
+            connector_interface = get_node_interface(connector_name, signal_name, graph_nodes)
+            if not connector_interface:
+                continue
+
+            target_interface = get_node_interface(target_name, signal_name, graph_nodes)
+            if not target_interface:
+                continue
 
             hpm_graph.create_connection(connector_interface, target_interface)
 

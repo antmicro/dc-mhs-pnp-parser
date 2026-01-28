@@ -1045,10 +1045,10 @@ def place_node_tree(
         )
         bounding_box = BoundingBox.union(bounding_box, children_bounding_box) if bounding_box else children_bounding_box
         new_x += children_bounding_box.width + offset
-        new_y += offset
+        new_y += approximate_node_height(to_node) + offset
 
     node.position = Vector2(new_x, y)
-    new_x += 150 + offset
+    new_x += 280 + offset
     new_y = start_y + (len(right_interfaces) - 1) * offset
 
     for right_interface in right_interfaces:

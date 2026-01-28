@@ -4,7 +4,7 @@ from enum import Enum
 from itertools import combinations
 import math
 import random
-from typing import Any, Iterable, Sequence, TypeGuard, TypeVar
+from typing import Any, Iterable, Iterator, Sequence, TypeGuard, TypeVar
 from pipeline_manager.dataflow_builder.data_structures import DataflowBuilderError, Side
 from typing_extensions import TypeIs
 
@@ -153,6 +153,10 @@ def get_node(node_or_node_name: Node | str, graph_nodes: dict[str, Node]):
         return node_or_node_name
     else:
         return graph_nodes.get(node_or_node_name)
+
+
+def get_nodes_by_category(category: str, graph: DataflowGraph) -> Iterator[Node]:
+    return (node for node in graph._nodes.values() if graph._spec_builder._nodes[node.name]["category"] == category)
 
 
 def get_node_interface(
@@ -1118,7 +1122,6 @@ def get_all_connected_nodes(
 
 
 def place_hpm_graph_nodes_tree(hpm_graph: DataflowGraph) -> None:
-    # Use the node with the most interface connections as the root node
     interface_connections = get_node_interface_connections(hpm_graph)
     interface_parent_nodes = get_interface_parent_nodes(hpm_graph)
     node_connected_nodes = get_node_connected_nodes(hpm_graph, interface_connections, interface_parent_nodes)
@@ -1126,7 +1129,15 @@ def place_hpm_graph_nodes_tree(hpm_graph: DataflowGraph) -> None:
     def connected_interface_count(node: Node) -> int:
         return sum(len(interfaces) for _, interfaces in interface_connections[node.id])
 
-    root_node = max(hpm_graph._nodes.values(), key=connected_interface_count)
+    fpga_node = next(get_nodes_by_category("Devices/FPGA", hpm_graph), None)
+    sci_node = next(get_nodes_by_category("Connectors/SCI", hpm_graph), None)
+
+    if fpga_node:
+        root_node = fpga_node
+    elif sci_node:
+        root_node = sci_node
+    else:
+        root_node = max(hpm_graph._nodes.values(), key=connected_interface_count)
 
     sorted_nodes = sorted(
         ((node, connected_interface_count(node)) for node in hpm_graph._nodes.values()), key=lambda x: x[1]

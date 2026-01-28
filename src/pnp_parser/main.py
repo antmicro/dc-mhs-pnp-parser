@@ -20,7 +20,7 @@ from pnp_parser.hpm import (
 
 from pipeline_manager.dataflow_builder.dataflow_builder import GraphBuilder, DataflowGraph
 
-from .fru_model import HardwareComponent
+from .fru_model import BusesI2C, HardwareComponent
 from dataclasses import dataclass
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
@@ -95,6 +95,18 @@ def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
     hpm_graph = create_graph(graph_builder, "Top Graph", set(fru_spec.hpm_nodes), top_graph_nodes)
     add_hpm_graph_connections(hpm, hpm_graph, top_graph_nodes)
     place_hpm_graph_nodes_tree(hpm_graph)
+
+    i2c_graph_nodes: dict[str, Node] = {}
+    i2c_nodes = [
+        node["name"]
+        for node in specification_builder._nodes.values()
+        if any(interface["type"] == "i2c" for interface in node.get("interfaces", []))
+    ]
+
+    print("Creating I2C graph..")
+    i2c_graph = create_graph(graph_builder, "I2C Graph", set(i2c_nodes), i2c_graph_nodes)
+    add_hpm_graph_connections(hpm, i2c_graph, i2c_graph_nodes, bus_type=BusesI2C)
+    place_hpm_graph_nodes_tree(i2c_graph)
 
     print("Validating specification..")
     spec = specification_builder.create_and_validate_spec(

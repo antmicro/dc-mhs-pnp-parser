@@ -538,13 +538,16 @@ def get_connectors(hpm: HardwareComponent) -> list[Connector]:
     return all_connectors_list
 
 
-def get_buses(hpm: HardwareComponent) -> list[Bus]:
+def get_buses(hpm: HardwareComponent, bus_type: type[Bus] | None = None) -> list[Bus]:
     all_buses_list: list[Bus] = []
 
     for bus_list_name in Buses.model_fields:
         field_value = getattr(hpm.component.buses, bus_list_name)
 
         if is_bus_list(field_value):
+            if bus_type is not None and (type(field_value[0]) is not bus_type):
+                continue
+
             all_buses_list.extend(field_value)
 
     return all_buses_list
@@ -626,12 +629,14 @@ def connect_bus_connectors_devices(
         if bus.connected_devices
         else []
     )
+    device_interfaces = [interface for interface in device_interfaces if interface is not None]
 
     connector_interfaces = (
         [get_node_interface(connector.endpoint, bus_name, graph_nodes) for connector in bus.connectors.root]
         if bus.connectors
         else []
     )
+    connector_interfaces = [interface for interface in connector_interfaces if interface is not None]
 
     # Connect device to connectors
     # In the HPM FRU JSON mockup file if there are connectors then there is at most one device defined
@@ -663,7 +668,11 @@ def connect_segment_connectors(
     if not segment.connectors:
         return
 
-    segment_interface = graph_nodes[segment.identifier.root].interfaces[0]
+    segment_node = graph_nodes.get(segment.identifier.root)
+    if not segment_node:
+        return
+
+    segment_interface = segment_node.interfaces[0]
 
     connectors = segment.connectors.root
     for connector in connectors:
@@ -684,7 +693,10 @@ def connect_segment_devices(
     if not segment.connected_devices:
         return
 
-    segment_node = graph_nodes[segment.identifier.root]
+    segment_node = graph_nodes.get(segment.identifier.root)
+    if not segment_node:
+        return
+
     segment_interface = segment_node.interfaces[0]
 
     devices = segment.connected_devices.root
@@ -800,6 +812,7 @@ def add_composite_connections(
     composites: list[ConnectorsComposite],
     hpm_graph: DataflowGraph,
     graph_nodes: dict[str, Node],
+    bus_type: type[Bus] | None = None,
 ) -> None:
     for composite in composites:
         composite_name = composite.identifier.root
@@ -808,16 +821,17 @@ def add_composite_connections(
         if not composite_node:
             continue
 
-        for mpic_name in composite.mpics:
-            mxio_interface = get_node_interface_by_type(mpic_name, "mpesti", graph_nodes)
-            if not mxio_interface:
-                continue
+        if bus_type is None or bus_type == BusesMPESTI:
+            for mpic_name in composite.mpics:
+                mxio_interface = get_node_interface_by_type(mpic_name, "mpesti", graph_nodes)
+                if not mxio_interface:
+                    continue
 
-            composite_interface = get_node_interface(composite_node, mxio_interface.name, graph_nodes)
-            if not composite_interface:
-                continue
+                composite_interface = get_node_interface(composite_node, mxio_interface.name, graph_nodes)
+                if not composite_interface:
+                    continue
 
-            hpm_graph.create_connection(composite_interface, mxio_interface)
+                hpm_graph.create_connection(composite_interface, mxio_interface)
 
         for mxio_name in composite.mxios:
             mxio_interface = get_node_interface_by_type(mxio_name, "mxio", graph_nodes)
@@ -869,21 +883,20 @@ def add_signal_connections(
 
 
 def add_hpm_graph_connections(
-    hpm: HardwareComponent,
-    hpm_graph: DataflowGraph,
-    graph_nodes: dict[str, Node],
+    hpm: HardwareComponent, hpm_graph: DataflowGraph, graph_nodes: dict[str, Node], bus_type: type[Bus] | None = None
 ) -> None:
     buses = hpm.component.buses
     if not buses:
         return
 
-    add_bus_connections(get_buses(hpm), hpm_graph, graph_nodes)
+    add_bus_connections(get_buses(hpm, bus_type), hpm_graph, graph_nodes)
 
     composites = hpm.component.connectors.composites or []
-    add_composite_connections(composites, hpm_graph, graph_nodes)
+    add_composite_connections(composites, hpm_graph, graph_nodes, bus_type)
 
-    connectors = hpm.component.connectors
-    add_signal_connections(connectors, hpm_graph, graph_nodes)
+    if bus_type is None:
+        connectors = hpm.component.connectors
+        add_signal_connections(connectors, hpm_graph, graph_nodes)
 
 
 T = TypeVar("T")

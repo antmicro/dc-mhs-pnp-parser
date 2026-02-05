@@ -416,7 +416,7 @@ def add_segment(
     segment_name = segment.identifier.root
     bus_category = segment_categories[type(segment)]
     spec_builder.add_node_type(
-        name=segment_name, category=f"{bus_category}/Segments/{segment_name}", layer=bus_category
+        name=segment_name, category=f"{bus_category}/Segments/{segment_name}", layer=bus_category.lower()
     )
 
     set_node_attributes(segment, segment_name, spec_builder)
@@ -438,7 +438,7 @@ def add_hub(
 ) -> None:
     hub_name = hub.identifier.root
     bus_category = hub_categories[type(hub)]
-    spec_builder.add_node_type(name=hub_name, category=f"{bus_category}/Hubs/{hub_name}", layer=bus_category)
+    spec_builder.add_node_type(name=hub_name, category=f"{bus_category}/Hubs/{hub_name}", layer=bus_category.lower())
 
     set_node_attributes(hub, hub_name, spec_builder)
 
@@ -475,7 +475,7 @@ def add_mux(
 ) -> None:
     mux_name = mux.identifier.root
     bus_category = mux_categories[type(mux)]
-    spec_builder.add_node_type(name=mux_name, category=f"{bus_category}/MUXes/{mux_name}", layer=bus_category)
+    spec_builder.add_node_type(name=mux_name, category=f"{bus_category}/MUXes/{mux_name}", layer=bus_category.lower())
 
     set_node_attributes(mux, mux_name, spec_builder)
 
@@ -581,9 +581,11 @@ def add_hpm_layers_to_spec(
     specification_builder: SpecificationBuilder,
 ):
     for bus_name in bus_names.values():
-        specification_builder.metadata_add_layer(bus_name, nodelayers=[bus_name], nodeinterfaces=[bus_name])
+        specification_builder.metadata_add_layer(
+            bus_name, nodelayers=[bus_name.lower()], nodeinterfaces=[bus_name.lower()]
+        )
 
-    specification_builder.metadata_add_layer("Signal", nodeinterfaces=["Signal"])
+    specification_builder.metadata_add_layer("Signal", nodeinterfaces=["signal"])
 
 
 def add_hpm_styles_to_spec(hpm_graph: SpecificationBuilder) -> None:

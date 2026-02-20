@@ -10,24 +10,30 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
 dependencies = [
-    "typer",
-    "rich",
-    "pipeline-manager@git+https://github.com/antmicro/kenning-pipeline-manager"
+  "typer",
+  "rich",
+  "pipeline-manager@git+https://github.com/antmicro/kenning-pipeline-manager"
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff",
+  "black",
+  "basedpyright"
 ]
 
 [tool.ruff]
 select = ["E", "F", "N", "B", "A", "RET"]
 line-length = 120
 exclude = [
-	  "src/__init__.py"
+  "src/__init__.py"
 ]
 
 [tool.black]
 line-length = 120
 
-[tool.mypy]
-ignore_missing_imports = true
-disallow_untyped_defs = true
+[tool.pyright]
+typeCheckingMode = "standard"
 
 [project.scripts]
 fru2graph = "fru2graph.main:app"

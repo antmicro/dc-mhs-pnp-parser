@@ -8,7 +8,7 @@ from pathlib import Path
 from pipeline_manager.specification_builder import SpecificationBuilder
 from pipeline_manager.frontend_builder import build_prepare
 
-from pnp_parser.hpm import (
+from .hpm import (
     add_hpm_graph_connections,
     add_hpm_styles_to_spec,
     add_hpm_layers_to_spec,

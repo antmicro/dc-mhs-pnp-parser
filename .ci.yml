@@ -13,7 +13,7 @@ build:
     - source .venv/bin/activate
     - wget -O Release_0_5_0.zip "https://drive.google.com/uc?id=1HaQbhgrJ--7bkkTC8bfA2pGSGGwdEeJm&export=download"
     - unzip Release_0_5_0.zip
-    - pnp-parser "Release_0_5_0/JSON Files/Mockups/HPM/hpm-fru-mockup-type1-hpm-example-v0.6.8.json" hpm-fru-mockup-v0.6.8-spec.json hpm-fru-mockup-v0.6.8-dataflow.json
+    - fru2graph "Release_0_5_0/JSON Files/Mockups/HPM/hpm-fru-mockup-type1-hpm-example-v0.6.8.json" hpm-fru-mockup-v0.6.8-spec.json hpm-fru-mockup-v0.6.8-dataflow.json
   artifacts:
     expire_in: 4 week
     when: always

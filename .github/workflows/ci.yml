@@ -1,0 +1,56 @@
+name: CI
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  Deploy-Docs:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+        - name: Checkout sources
+          uses: actions/checkout@v6
+        - name: Setup npm
+          uses: actions/setup-node@v6
+          with:
+            node-version: 24
+        - name: Setup Python
+          uses: actions/setup-python@v6
+          with:
+            python-version: 3.11
+        - name: Install dependencies
+          run: |
+            python3 -m venv .venv
+            source .venv/bin/activate
+            pip install .
+        - name: Build static demo
+          run: |
+            source .venv/bin/activate
+            wget -O Release_0_5_0.zip "https://drive.google.com/uc?id=1HaQbhgrJ--7bkkTC8bfA2pGSGGwdEeJm&export=download"
+            unzip Release_0_5_0.zip
+            fru2graph "Release_0_5_0/JSON Files/Mockups/HPM/hpm-fru-mockup-type1-hpm-example-v0.6.8.json" hpm-fru-mockup-v0.6.8-spec.json hpm-fru-mockup-v0.6.8-dataflow.json
+            mkdir docs
+            pipeline_manager build static-html --single-html docs/index.html hpm-fru-mockup-v0.6.8-spec.json hpm-fru-mockup-v0.6.8-dataflow.json --workspace-directory workspace
+        - uses: actions/upload-artifact@v4
+          with:
+            name: gh-page
+            path: docs
+        - name: Deploy to GitHub Pages
+          if: github.event_name != 'pull_request'
+          run: |
+            cd docs
+            touch .nojekyll
+            git init
+            cp ../.git/config ./.git/config
+            git add .
+            ls -al
+            git config --local user.email "BuildTheDocs@GitHubActions"
+            git config --local user.name "GitHub Actions"
+            git commit -am "update ${{ github.sha }}"
+            git push -u origin +HEAD:gh-pages

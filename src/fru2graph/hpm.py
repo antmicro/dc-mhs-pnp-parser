@@ -952,7 +952,7 @@ def get_interface_parent_nodes(graph: DataflowGraph) -> dict[InterfaceID, Node]:
     return interface_parent_nodes
 
 
-def approximate_node_height(node: Node) -> float:
+def approximate_node_height(node: Node, interface_type: str | None = None) -> float:
     left_interfaces_height = 0
     right_interfaces_height = 0
 
@@ -960,6 +960,9 @@ def approximate_node_height(node: Node) -> float:
     interface_line_height = 19
 
     for interface in node.interfaces:
+        if interface_type is not None and interface.type != interface_type:
+            continue
+
         lines = 1 + (len(interface.name) - 1) // 14  # assuming wrapping every 14 characters
 
         if not interface.side or interface.side == Side.LEFT:
@@ -995,14 +998,15 @@ class BoundingBox:
         return BoundingBox(x1, y1, x2 - x1, y2 - y1)
 
 
-def get_node_bounding_box(node: Node) -> BoundingBox:
+def get_node_bounding_box(node: Node, interface_type: str | None = None) -> BoundingBox:
     position = node.position or Vector2()
-    return BoundingBox(position.x, position.y, 300, approximate_node_height(node))
+    return BoundingBox(position.x, position.y, 300, approximate_node_height(node, interface_type))
 
 
 def place_node_tree(
     graph: DataflowGraph,
     node: Node,
+    interface_type: str | None,
     x: float,
     y: float,
     placed_nodes: set[NodeID],
@@ -1015,7 +1019,7 @@ def place_node_tree(
     offset = 100
 
     new_x = x
-    start_y = y + approximate_node_height(node) + offset
+    start_y = y + approximate_node_height(node, interface_type) + offset
     new_y = start_y
     bounding_box: BoundingBox | None = None
 
@@ -1044,6 +1048,7 @@ def place_node_tree(
         children_bounding_box = place_node_tree(
             graph,
             to_node,
+            interface_type,
             new_x,
             new_y,
             placed_nodes,
@@ -1053,7 +1058,7 @@ def place_node_tree(
         )
         bounding_box = BoundingBox.union(bounding_box, children_bounding_box) if bounding_box else children_bounding_box
         new_x += children_bounding_box.width + offset
-        new_y += approximate_node_height(to_node) + offset
+        new_y += approximate_node_height(to_node, interface_type) + offset
 
     node.position = Vector2(new_x, y)
     new_x += 280 + offset
@@ -1073,6 +1078,7 @@ def place_node_tree(
         children_bounding_box = place_node_tree(
             graph,
             to_node,
+            interface_type,
             new_x,
             new_y,
             placed_nodes,
@@ -1084,7 +1090,7 @@ def place_node_tree(
         new_x += children_bounding_box.width + offset
         new_y -= offset
 
-    node_bounding_box = get_node_bounding_box(node)
+    node_bounding_box = get_node_bounding_box(node, interface_type)
     return BoundingBox.union(bounding_box, node_bounding_box) if bounding_box else node_bounding_box
 
 
@@ -1123,7 +1129,7 @@ def get_all_connected_nodes(
     return connected_nodes
 
 
-def place_hpm_graph_nodes_tree(hpm_graph: DataflowGraph) -> None:
+def place_hpm_graph_nodes_tree(hpm_graph: DataflowGraph, bus_type: type[Bus] | None = None) -> None:
     interface_connections = get_node_interface_connections(hpm_graph)
     interface_parent_nodes = get_interface_parent_nodes(hpm_graph)
     node_connected_nodes = get_node_connected_nodes(hpm_graph, interface_connections, interface_parent_nodes)
@@ -1145,8 +1151,18 @@ def place_hpm_graph_nodes_tree(hpm_graph: DataflowGraph) -> None:
         ((node, connected_interface_count(node)) for node in hpm_graph._nodes.values()), key=lambda x: x[1]
     )
 
+    interface_type = bus_names[bus_type].lower() if bus_type else None
+
     place_node_tree(
-        hpm_graph, root_node, 0, 0, set(), interface_connections, interface_parent_nodes, node_connected_nodes
+        hpm_graph,
+        root_node,
+        interface_type,
+        0,
+        0,
+        set(),
+        interface_connections,
+        interface_parent_nodes,
+        node_connected_nodes,
     )
 
 

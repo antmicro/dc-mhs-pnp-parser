@@ -67,7 +67,7 @@ def create_graph(
     graph.name = name
 
     for node_name in graph_nodes_names:
-        new_node = graph.create_node(name=node_name)
+        new_node = graph.create_node(name=node_name, enabled_interface_groups=[])
         graph_nodes[node_name] = new_node
 
     return graph
@@ -114,7 +114,7 @@ def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
         bus_graph_nodes: dict[str, Node] = {}
         bus_graph = create_graph(graph_builder, f"{bus_name} Graph", bus_nodes, bus_graph_nodes)
         add_hpm_graph_connections(hpm, bus_graph, bus_graph_nodes, bus_type)
-        place_hpm_graph_nodes_tree(bus_graph)
+        place_hpm_graph_nodes_tree(bus_graph, bus_type)
 
     print("Validating specification..")
     spec = specification_builder.create_and_validate_spec(

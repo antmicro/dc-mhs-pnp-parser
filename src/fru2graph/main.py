@@ -73,6 +73,24 @@ def create_graph(
     return graph
 
 
+def create_bus_graph(
+    graph_builder: GraphBuilder,
+    bus_name: str,
+    graph_nodes_names: Iterable[str],
+    graph_nodes: dict[str, Node],
+    subgraph: bool = False,
+):
+    graph = graph_builder.create_graph()
+    graph.name = f"{bus_name} Graph"
+
+    for node_name in graph_nodes_names:
+        new_node = graph.create_node(name=node_name, enabled_interface_groups=[])
+        new_node.interfaces = [interface for interface in new_node.interfaces if interface.type == bus_name.lower()]
+        graph_nodes[node_name] = new_node
+
+    return graph
+
+
 @app.command()
 def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
     with open(fru_json) as f:
@@ -112,7 +130,7 @@ def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
 
         print(f"Creating {bus_name} graph..")
         bus_graph_nodes: dict[str, Node] = {}
-        bus_graph = create_graph(graph_builder, f"{bus_name} Graph", bus_nodes, bus_graph_nodes)
+        bus_graph = create_bus_graph(graph_builder, bus_name, bus_nodes, bus_graph_nodes)
         add_hpm_graph_connections(hpm, bus_graph, bus_graph_nodes, bus_type)
         place_hpm_graph_nodes_tree(bus_graph, bus_type)
 

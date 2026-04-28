@@ -91,6 +91,29 @@ def create_bus_graph(
     return graph
 
 
+def add_disabled_layers_to_bus_graphs(path: Path):
+    # TODO: move to `create_bus_graph()` after `disabledLayers` is exposed in the KPM Python API
+    with open(path, "r") as f:
+        dataflow = json.load(f)
+
+    graphs = dataflow["graphs"]
+    bus_graphs = [(graph, graph["name"].split(" ")[0]) for graph in graphs]
+
+    for graph, bus_type in bus_graphs:
+        if graph["name"] == "Top Graph":
+            graph["disabledLayers"] = []
+        else:
+            graph["disabledLayers"] = [x for _, x in bus_graphs if x not in ("Top", bus_type)] + [
+                "PCIe",
+                "QSPI",
+                "SGMII",
+                "Signal",
+            ]
+
+    with open(path, "w") as f:
+        json.dump(dataflow, f, sort_keys=True, indent=4)
+
+
 @app.command()
 def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
     with open(fru_json) as f:
@@ -142,6 +165,8 @@ def main(fru_json: str, output_spec: Path, output_graph: Path) -> None:
         json.dump(spec, f, sort_keys=True, indent=4)
 
     graph_builder.save(output_graph)
+
+    add_disabled_layers_to_bus_graphs(output_graph)
 
 
 if __name__ == "__main__":
